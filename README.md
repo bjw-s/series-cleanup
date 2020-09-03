@@ -1,5 +1,5 @@
 # series-cleanup
-![GitHub last commit](https://img.shields.io/github/last-commit/bjws/series-cleanup)    ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bjws/series-cleanup/docker)    [![Docker](https://img.shields.io/docker/pulls/bjws/series-cleanup)](https://hub.docker.com/r/bjws/series-cleanup)
+![GitHub last commit](https://img.shields.io/github/last-commit/bjw-s/series-cleanup)    ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bjw-s/series-cleanup/docker)    [![Docker](https://img.shields.io/docker/pulls/bjws/series-cleanup)](https://hub.docker.com/r/bjws/series-cleanup)
 
 This app searches the specified folders for TV shows, and removes them if they are marked as watched on Trakt.tv.
 
