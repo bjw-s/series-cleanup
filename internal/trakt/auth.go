@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/bjw-s/seriescleanup/helpers"
+	"github.com/bjw-s/seriescleanup/internal/helpers"
 )
 
 type deviceCodePayload struct {

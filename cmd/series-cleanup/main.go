@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/apex/log"
-	"github.com/bjw-s/seriescleanup/helpers"
-	"github.com/bjw-s/seriescleanup/mediafile"
-	"github.com/bjw-s/seriescleanup/trakt"
+	"github.com/bjw-s/seriescleanup/internal/helpers"
+	"github.com/bjw-s/seriescleanup/internal/mediafile"
+	"github.com/bjw-s/seriescleanup/internal/trakt"
 )
 
 type config struct {

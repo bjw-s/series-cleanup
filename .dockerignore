@@ -3,4 +3,6 @@
 .github
 .gitattributes
 .vscode
+Dockerfile
 README.md
+settings.sample.json
