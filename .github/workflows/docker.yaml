@@ -3,6 +3,12 @@ name: Docker Image CI
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - .vscode
+      - .gitignore
+      - README.md
+      - LICENSE
+      - examples/**
 
   release:
     types: [ published ]
