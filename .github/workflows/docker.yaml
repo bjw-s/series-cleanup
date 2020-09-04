@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
         IMAGE_REPO: ghcr.io
-        IMAGE_NAMESPACE: ${{ github.repository }}
+        IMAGE_NAMESPACE: ${{ github.repository_owner }}
         IMAGE_NAME: series-cleanup
     steps:
       - name: Checkout
