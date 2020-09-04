@@ -21,6 +21,11 @@ Usage of ./series-cleanup:
 
 Create a copy of [examples/settings.json](examples/settings.json) and modify the settings to your preferences. Make sure to specify the Trakt Client ID and Client Secret according to your [Trakt API app](https://trakt.tv/oauth/applications) values.
 
+The Trakt Client ID and Client Secret can also be provided as environment variables instead of putting them in the configuration file:
+
+* `TRAKT_CLIENT_ID`
+* `TRAKT_CLIENT_SECRET`
+
 ## Docker
 
 A Docker image can be found here: [GitHub Container Registry](https://github.com/users/bjw-s/packages/container/series-cleanup/). This image expects the configuration file to be available at `/data/settings.json`.
