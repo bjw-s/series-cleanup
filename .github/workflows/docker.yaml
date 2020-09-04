@@ -2,10 +2,10 @@
 name: Docker Image CI
 on:
   push:
-    branches: [ development ]
+    branches: [ main ]
 
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
         IMAGE_REPO: ghcr.io
-        IMAGE_NAMESPACE: bjw-s/series-cleanup
+        IMAGE_NAMESPACE: ${{ github.repository }}
         IMAGE_NAME: series-cleanup
     steps:
       - name: Checkout
@@ -26,29 +26,28 @@ jobs:
       - name: Get the version
         id: version
         run: |
-          TAG_NAME=${{ github.event.release.tag_name }}
-          TAG_NAME=${TAG_NAME#"v"}
-          echo ::set-output name=tag::${TAG_NAME}
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          TAG_NAME="${TAG_NAME#"v"}"
+          echo "::set-output name=tag::${TAG_NAME}"
 
       - name: Build 'latest' container image
         run: |
-          echo "latest"
-          # docker build \
-          #   -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest" \
-          #   -f build/package/Dockerfile .
+          docker build \
+            -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest" \
+            -f build/package/Dockerfile .
 
       - name: Build tagged container image
         if: ${{steps.version.outputs.tag}}
         run: |
-          echo "${{steps.version.outputs.tag}}"
-          # docker build \
-          #   -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}" \
-          #   -f build/package/Dockerfile .
+          docker build \
+            -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}" \
+            -f build/package/Dockerfile .
 
-      # - name: Push 'latest' container image
-      #   run: |
-      #     docker push "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest"
+      - name: Push 'latest' container image
+        run: |
+          docker push "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest"
 
-      # - name: Push tagged container image
-      #   run: |
-      #     docker push "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}"
+      - name: Push tagged container image
+        if: ${{steps.version.outputs.tag}}
+        run: |
+          docker push "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}"
