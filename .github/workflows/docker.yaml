@@ -1,28 +1,53 @@
 ---
-name: docker
+name: Docker Image CI
 on:
   push:
     branches: [ main ]
-  schedule:
-    - cron:  '0 1 * * 0'
+
+  release:
+    types: [ published ]
+
 jobs:
-  docker:
+  build:
     if: "!contains(github.event.head_commit.message, '[ci-skip]')"
     runs-on: ubuntu-latest
     env:
-        IMAGE_NAME: ghcr.io/bjw-s/series-cleanup
+        IMAGE_REPO: ghcr.io
+        IMAGE_NAMESPACE: ${{ github.repository }}
+        IMAGE_NAME: series-cleanup
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Login to Github Container Registry
-        run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-      - name: Build container image
+        run: |
+          echo "${{ secrets.CR_PAT }}" | docker login "${IMAGE_REPO}" -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Get the version
+        id: version
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          TAG_NAME="${TAG_NAME#"v"}"
+          echo "::set-output name=tag::${TAG_NAME}"
+
+      - name: Build 'latest' container image
         run: |
           docker build \
-            -t "${IMAGE_NAME}:latest" \
-            -t "${IMAGE_NAME}:$(date '+%Y.%m.%d')" \
+            -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest" \
             -f build/package/Dockerfile .
-      - name: Push container image
+
+      - name: Build tagged container image
+        if: ${{steps.version.outputs.tag}}
         run: |
-          docker push "${IMAGE_NAME}:latest"
-          docker push "${IMAGE_NAME}:$(date '+%Y.%m.%d')"
+          docker build \
+            -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}" \
+            -f build/package/Dockerfile .
+
+      - name: Push 'latest' container image
+        run: |
+          docker push "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest"
+
+      - name: Push tagged container image
+        if: ${{steps.version.outputs.tag}}
+        run: |
+          docker push "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}"
