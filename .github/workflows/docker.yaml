@@ -30,21 +30,20 @@ jobs:
           TAG_NAME=${TAG_NAME#"v"}
           echo ::set-output name=tag::${TAG_NAME}
 
-      - name: Echo version
+      - name: Build 'latest' container image
         run: |
-          echo "${TAG_NAME}"
+          echo "latest"
+          # docker build \
+          #   -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest" \
+          #   -f build/package/Dockerfile .
 
-      # - name: Build 'latest' container image
-      #   run: |
-      #     docker build \
-      #       -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:latest" \
-      #       -f build/package/Dockerfile .
-
-      # - name: Build tagged container image
-      #   run: |
-      #     docker build \
-      #       -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}" \
-      #       -f build/package/Dockerfile .
+      - name: Build tagged container image
+        if: ${{steps.version.outputs.tag}}
+        run: |
+          echo "${{steps.version.outputs.tag}}"
+          # docker build \
+          #   -t "${IMAGE_REPO}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${{steps.version.outputs.tag}}" \
+          #   -f build/package/Dockerfile .
 
       # - name: Push 'latest' container image
       #   run: |
