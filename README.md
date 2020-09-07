@@ -1,5 +1,5 @@
 # series-cleanup
-![GitHub last commit](https://img.shields.io/github/last-commit/bjw-s/series-cleanup?style=flat-square)    ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bjw-s/series-cleanup/Docker%20Image%20CI?style=flat-square)    [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/bjw-s/series-cleanup?sort=semver&style=flat-square)](https://github.com/bjw-s/series-cleanup/releases/latest)
+![GitHub last commit](https://img.shields.io/github/last-commit/bjw-s/series-cleanup?style=flat-square)    ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bjw-s/series-cleanup/Docker%20Image%20CI?style=flat-square)    [![Go Report Card](https://goreportcard.com/badge/github.com/bjw-s/series-cleanup?style=flat-square)](https://goreportcard.com/report/github.com/bjw-s/series-cleanup)    [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/bjw-s/series-cleanup?sort=semver&style=flat-square)](https://github.com/bjw-s/series-cleanup/releases/latest)
 
 This app searches the specified folders for TV shows, and removes them if they are marked as watched on Trakt.tv.
 
