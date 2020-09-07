@@ -134,43 +134,13 @@ func main() {
 			}).Fatal("Folder does not exist")
 		}
 
-		var tvShowFiles []*mediafile.TVShowFile
-		err := filepath.Walk(scanFolder, func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() {
-				return nil
-			}
-
-			fileName := filepath.Base(path)
-			if strings.HasPrefix(fileName, ".") {
-				return nil
-			}
-
-			if !mediafile.IsMediaFile(path) {
-				return nil
-			}
-
-			file, err := mediafile.NewTVShowFile(path)
-			if err != nil {
-				return err
-			}
-			if file != nil {
-				// Add mappings
-				for _, item := range configData.Mappings {
-					if strings.ToLower(file.ShowDir) == strings.ToLower(item.Folder) {
-						file.Mappings = item.Mapping
-						break
-					}
-				}
-				tvShowFiles = append(tvShowFiles, file)
-			}
-			return nil
-		})
+		tvShowFiles, err := collectTvShowFiles(scanFolder)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 
-		var waitgroup sync.WaitGroup
 		tvShowFilesLength := len(tvShowFiles)
+		var waitgroup sync.WaitGroup
 		waitgroup.Add(tvShowFilesLength)
 
 		for i := 0; i < tvShowFilesLength; i++ {
@@ -189,6 +159,44 @@ func main() {
 	log.WithFields(log.Fields{
 		"script": scriptName,
 	}).Info("Finished...")
+}
+
+func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
+	var tvShowFiles []*mediafile.TVShowFile
+	err := filepath.Walk(scanFolder, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		fileName := filepath.Base(path)
+		if strings.HasPrefix(fileName, ".") {
+			return nil
+		}
+
+		if !mediafile.IsMediaFile(path) {
+			return nil
+		}
+
+		file, err := mediafile.NewTVShowFile(path)
+		if err != nil {
+			return err
+		}
+		if file != nil {
+			// Add mappings
+			for _, item := range configData.Mappings {
+				if strings.ToLower(file.ShowDir) == strings.ToLower(item.Folder) {
+					file.Mappings = item.Mapping
+					break
+				}
+			}
+			tvShowFiles = append(tvShowFiles, file)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return tvShowFiles, nil
 }
 
 func processTvShowFile(mediafile *mediafile.TVShowFile, user *trakt.User) error {
