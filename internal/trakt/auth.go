@@ -135,7 +135,7 @@ func (token *accessToken) WillExpireSoon() bool {
 	return false
 }
 
-func (token *accessToken) Refresh(api *API) error {
+func (token *accessToken) Refresh(api *API) (*accessToken, error) {
 	accessTokenRefreshPayload := accessTokenRefreshPayload{}
 	accessTokenRefreshPayload.RefreshToken = token.RefreshToken
 	accessTokenRefreshPayload.ClientID = api.ClientID
@@ -145,7 +145,7 @@ func (token *accessToken) Refresh(api *API) error {
 
 	result, err := api.sendRequest(http.MethodPost, "/oauth/token", accessTokenRefreshPayload)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	switch result.StatusCode {
@@ -153,12 +153,11 @@ func (token *accessToken) Refresh(api *API) error {
 		accessTokenData := accessToken{}
 		err = json.Unmarshal(result.Body, &accessTokenData)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		token = &accessTokenData
-		return nil
+		return &accessTokenData, nil
 	default:
-		return fmt.Errorf("Could not refresh access token")
+		return nil, fmt.Errorf("Could not refresh access token")
 	}
 }
 
@@ -176,7 +175,7 @@ func authenticateFromFile(file string, api *API) (*accessToken, error) {
 			return nil, err
 		}
 	} else if accessTokenData.WillExpireSoon() {
-		err = accessTokenData.Refresh(api)
+		accessTokenData, err = accessTokenData.Refresh(api)
 		if err != nil {
 			return nil, err
 		}

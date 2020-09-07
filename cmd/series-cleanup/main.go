@@ -115,7 +115,7 @@ func main() {
 		}).Fatal("Could not authenticate with Trakt")
 	}
 
-	log.Info("Succesfully authenticated with Trakt")
+	log.Info("Successfully authenticated with Trakt")
 
 	// Get User data from Trakt
 	var traktUser = trakt.User{}
