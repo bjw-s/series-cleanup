@@ -1,6 +1,7 @@
 {
     "general": {
-        "deleteAfterHours": 24
+        "deleteAfterHours": 24,
+        "dryRun": true
     },
     "trakt": {
         "clientId": "<Trakt.tv client ID>",
@@ -13,7 +14,7 @@
     "scanFolders": [
         "/Media/Series"
     ],
-    "mappings": [
+    "overrides": [
         {
             "folder" :"Greys Anatomy",
             "mapping": {

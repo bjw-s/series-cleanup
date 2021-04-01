@@ -18,6 +18,7 @@ import (
 
 type config struct {
 	General struct {
+		DryRun           bool
 		DeleteAfterHours int
 	}
 	Trakt struct {
@@ -29,9 +30,10 @@ type config struct {
 		Loglevel string
 	}
 	ScanFolders []string
-	Mappings    []struct {
+	Overrides   []struct {
 		Folder  string
 		Mapping mediafile.ShowMapping
+		Skip    bool
 	}
 }
 
@@ -163,7 +165,7 @@ func main() {
 
 func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 	var tvShowFiles []*mediafile.TVShowFile
-	err := filepath.Walk(scanFolder, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(scanFolder, func(path string, info os.FileInfo, nestedErr error) error {
 		if info.IsDir() {
 			return nil
 		}
@@ -183,13 +185,23 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 		}
 		if file != nil {
 			// Add mappings
-			for _, item := range configData.Mappings {
-				if strings.ToLower(file.ShowDir) == strings.ToLower(item.Folder) {
+			skipShow := false
+			for _, item := range configData.Overrides {
+				if strings.EqualFold(file.ShowDir, item.Folder) {
 					file.Mappings = item.Mapping
+					skipShow = item.Skip
 					break
 				}
 			}
-			tvShowFiles = append(tvShowFiles, file)
+			if !skipShow {
+				tvShowFiles = append(tvShowFiles, file)
+			} else {
+				log.WithFields(log.Fields{
+					"show": file.ShowDir,
+					"file": file.Filename,
+				}).Debug("Show is configured to be skipped...")
+				return nil
+			}
 		}
 		return nil
 	})
@@ -242,11 +254,18 @@ func processTvShowFile(mediafile *mediafile.TVShowFile, user *trakt.User) error 
 
 	watchedBeforeTime := time.Now().Add(-time.Duration(int64(configData.General.DeleteAfterHours) * int64(time.Hour)))
 	if episode.LastWatchedBefore(watchedBeforeTime) {
-		log.WithFields(log.Fields{
-			"dir":  mediafile.Dir,
-			"file": mediafile.Filename,
-		}).Info("Removing tv show file")
-		mediafile.DeleteWithSubtitleFiles()
+		if configData.General.DryRun {
+			log.WithFields(log.Fields{
+				"dir":  mediafile.Dir,
+				"file": mediafile.Filename,
+			}).Info("Tv show file would have been removed")
+		} else {
+			log.WithFields(log.Fields{
+				"dir":  mediafile.Dir,
+				"file": mediafile.Filename,
+			}).Info("Removing tv show file")
+			mediafile.DeleteWithSubtitleFiles()
+		}
 	}
 
 	return nil
