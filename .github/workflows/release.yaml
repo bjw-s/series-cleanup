@@ -8,9 +8,12 @@ on:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+
+    env:
+      DOCKER_CLI_EXPERIMENTAL: "enabled"
+
     steps:
-      - name: Get bjw-s-bot token
-        id: get-app-token
+      - id: get-app-token
         uses: getsentry/action-github-app-token@v1
         with:
           app_id: ${{ secrets.BJWS_APP_ID }}
@@ -30,8 +33,18 @@ jobs:
           path: /home/runner/go/pkg/mod
           key: go-mod
 
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.CR_PAT }}
+
       - uses: goreleaser/goreleaser-action@v2
         with:
           args: release
         env:
           GITHUB_TOKEN: ${{ steps.get-app-token.outputs.token }}
+
+      - if: always()
+        run: rm -f ${HOME}/.docker/config.json
