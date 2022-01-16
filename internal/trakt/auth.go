@@ -169,7 +169,10 @@ func authenticateFromFile(file string, api *API) (*accessToken, error) {
 	}
 
 	if accessTokenData.HasExpired() {
-		accessTokenData.DeleteCacheFile(file)
+		err = accessTokenData.DeleteCacheFile(file)
+		if err != nil {
+			return nil, err
+		}
 		accessTokenData, err = authenticateWithDeviceToken(api)
 		if err != nil {
 			return nil, err

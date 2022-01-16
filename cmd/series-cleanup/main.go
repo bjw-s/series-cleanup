@@ -124,7 +124,12 @@ func main() {
 	var traktUser = trakt.User{}
 	traktUser.Name = configData.Trakt.User
 
-	traktUser.GetWatchedShows(traktAPI)
+	err = traktUser.GetWatchedShows(traktAPI)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Fatal("Could not get watched shows from Trakt")
+	}
 
 	for _, scanFolder := range configData.ScanFolders {
 		log.WithFields(log.Fields{
@@ -268,7 +273,10 @@ func processTvShowFile(mediafile *mediafile.TVShowFile, user *trakt.User) error 
 				"dir":  mediafile.Dir,
 				"file": mediafile.Filename,
 			}).Info("Removing tv show file")
-			mediafile.DeleteWithSubtitleFiles()
+			err := mediafile.DeleteWithSubtitleFiles()
+			if err != nil {
+				return err
+			}
 		}
 	}
 

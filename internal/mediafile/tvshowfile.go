@@ -88,10 +88,25 @@ func (tvShowFile *TVShowFile) determineEpisode() error {
 func NewTVShowFile(path string, folderRegex string) (*TVShowFile, error) {
 	tvshowfile := new(TVShowFile)
 	tvshowfile.path = path
-	tvshowfile.getBasicFileData()
-	tvshowfile.getSubtitleFiles()
-	tvshowfile.determineShow(folderRegex)
-	tvshowfile.determineSeason()
-	tvshowfile.determineEpisode()
+	err := tvshowfile.getBasicFileData()
+	if err != nil {
+		return nil, err
+	}
+	err = tvshowfile.getSubtitleFiles()
+	if err != nil {
+		return nil, err
+	}
+	err = tvshowfile.determineShow(folderRegex)
+	if err != nil {
+		return nil, err
+	}
+	err = tvshowfile.determineSeason()
+	if err != nil {
+		return nil, err
+	}
+	err = tvshowfile.determineEpisode()
+	if err != nil {
+		return nil, err
+	}
 	return tvshowfile, nil
 }

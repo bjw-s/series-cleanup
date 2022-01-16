@@ -26,8 +26,14 @@ type MediaFile struct {
 func NewMediaFile(path string) (*MediaFile, error) {
 	mediafile := new(MediaFile)
 	mediafile.path = path
-	mediafile.getBasicFileData()
-	mediafile.getSubtitleFiles()
+	err := mediafile.getBasicFileData()
+	if err != nil {
+		return nil, err
+	}
+	err = mediafile.getSubtitleFiles()
+	if err != nil {
+		return nil, err
+	}
 
 	return mediafile, nil
 }
