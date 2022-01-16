@@ -30,6 +30,7 @@ type config struct {
 		Loglevel string
 	}
 	ScanFolders []string
+	FolderRegex string
 	Overrides   []struct {
 		Folder  string
 		Mapping mediafile.ShowMapping
@@ -179,7 +180,7 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 			return nil
 		}
 
-		file, err := mediafile.NewTVShowFile(path)
+		file, err := mediafile.NewTVShowFile(path, configData.FolderRegex)
 		if err != nil {
 			return err
 		}
@@ -187,7 +188,8 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 			// Add mappings
 			skipShow := false
 			for _, item := range configData.Overrides {
-				if strings.EqualFold(file.ShowDir, item.Folder) {
+				parentFolderName := filepath.Base(filepath.Dir(file.Dir))
+				if strings.EqualFold(parentFolderName, item.Folder) {
 					file.Mappings = item.Mapping
 					skipShow = item.Skip
 					break
@@ -197,7 +199,7 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 				tvShowFiles = append(tvShowFiles, file)
 			} else {
 				log.WithFields(log.Fields{
-					"show": file.ShowDir,
+					"show": file.Show,
 					"file": file.Filename,
 				}).Debug("Show is configured to be skipped...")
 				return nil
@@ -218,17 +220,19 @@ func processTvShowFile(mediafile *mediafile.TVShowFile, user *trakt.User) error 
 	}).Debug("Processing tv show file")
 
 	var watchedShow *trakt.WatchedShow
-	if mediafile.Mappings.TVDBID != 0 {
+	if len(mediafile.Mappings.IMDBID) != 0 {
+		watchedShow = user.FindWatchedShowByIMDBID(mediafile.Mappings.IMDBID)
+	} else if mediafile.Mappings.TVDBID != 0 {
 		watchedShow = user.FindWatchedShowByTVDBID(mediafile.Mappings.TVDBID)
 	} else if mediafile.Mappings.TraktName != "" {
 		watchedShow = user.FindWatchedShowByName(mediafile.Mappings.TraktName)
 	} else {
-		watchedShow = user.FindWatchedShowByName(mediafile.ShowDir)
+		watchedShow = user.FindWatchedShowByName(mediafile.Show)
 	}
 
 	if watchedShow == nil {
 		log.WithFields(log.Fields{
-			"show": mediafile.ShowDir,
+			"show": mediafile.Show,
 		}).Debug("Show is unwatched or could not be found, skipping...")
 		return nil
 	}
