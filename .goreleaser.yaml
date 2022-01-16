@@ -8,11 +8,7 @@ builds:
       - CGO_ENABLED=0
     goarch:
       - amd64
-      - arm
       - arm64
-    goarm:
-      - 6
-      - 7
     goos:
       - darwin
       - linux
@@ -36,3 +32,31 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+
+dockers:
+  - goos: linux
+    goarch: amd64
+    dockerfile: build/package/Dockerfile
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/amd64
+    image_templates:
+      - bjw-s/{{ .ProjectName }}:{{ .Tag }}-amd64
+  - goos: linux
+    goarch: arm64
+    dockerfile: build/package/Dockerfile
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/arm64
+    image_templates:
+      - bjw-s/{{ .ProjectName }}:{{ .Tag }}-arm64
+
+docker_manifests:
+- name_template: bjw-s/{{ .ProjectName }}:{{ .Tag }}
+  image_templates:
+    - bjw-s/{{ .ProjectName }}:{{ .Tag }}-amd64
+    - bjw-s/{{ .ProjectName }}:{{ .Tag }}-arm64
+- name_template: bjw-s/{{ .ProjectName }}:latest
+  image_templates:
+    - bjw-s/{{ .ProjectName }}:{{ .Tag }}-amd64
+    - bjw-s/{{ .ProjectName }}:{{ .Tag }}-arm64
