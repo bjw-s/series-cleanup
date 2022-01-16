@@ -88,7 +88,7 @@ func (token *accessToken) WriteToFile(path string) error {
 
 func (token *accessToken) ReadFromFile(path string) error {
 	if !helpers.FileExists(path) {
-		return fmt.Errorf("File %v does not exist", path)
+		return fmt.Errorf("file %v does not exist", path)
 	}
 
 	file, err := ioutil.ReadFile(path)
@@ -106,7 +106,7 @@ func (token *accessToken) ReadFromFile(path string) error {
 
 func (token *accessToken) DeleteCacheFile(path string) error {
 	if !helpers.FileExists(path) {
-		return fmt.Errorf("File %v does not exist", path)
+		return fmt.Errorf("file %v does not exist", path)
 	}
 
 	err := os.Remove(path)
@@ -120,19 +120,13 @@ func (token *accessToken) DeleteCacheFile(path string) error {
 func (token *accessToken) HasExpired() bool {
 	accessTokenExpirationDate := time.Unix(token.CreatedAt+token.ExpiresIn, 0)
 	currentTime := time.Now()
-	if accessTokenExpirationDate.Sub(currentTime) < 0 {
-		return true
-	}
-	return false
+	return accessTokenExpirationDate.Sub(currentTime) < 0
 }
 
 func (token *accessToken) WillExpireSoon() bool {
 	accessTokenExpirationDateWithBuffer := time.Unix(token.CreatedAt+token.ExpirationWithBuffer, 0)
 	currentTime := time.Now()
-	if accessTokenExpirationDateWithBuffer.Sub(currentTime) < 0 {
-		return true
-	}
-	return false
+	return accessTokenExpirationDateWithBuffer.Sub(currentTime) < 0
 }
 
 func (token *accessToken) Refresh(api *API) (*accessToken, error) {
@@ -157,7 +151,7 @@ func (token *accessToken) Refresh(api *API) (*accessToken, error) {
 		}
 		return &accessTokenData, nil
 	default:
-		return nil, fmt.Errorf("Could not refresh access token")
+		return nil, fmt.Errorf("could not refresh access token")
 	}
 }
 
@@ -216,7 +210,7 @@ func authenticateWithDeviceToken(api *API) (*accessToken, error) {
 		time.Sleep(time.Duration(deviceCode.Interval) * time.Second)
 	}
 
-	return nil, fmt.Errorf("Could not exchange device code for access token")
+	return nil, fmt.Errorf("could not exchange device code for access token")
 }
 
 func getDeviceToken(api *API) (*deviceCode, error) {
