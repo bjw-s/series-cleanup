@@ -105,7 +105,7 @@ func (user *User) FindWatchedShowByName(name string) *WatchedShow {
 	}
 
 	for _, show := range user.WatchedShows {
-		if strings.ToLower(show.Show.Title) == strings.ToLower(name) {
+		if strings.EqualFold(show.Show.Title, name) {
 			return &show
 		}
 	}
@@ -121,6 +121,21 @@ func (user *User) FindWatchedShowByTVDBID(tvdbid int) *WatchedShow {
 
 	for _, show := range user.WatchedShows {
 		if show.Show.IDS.TVDB == tvdbid {
+			return &show
+		}
+	}
+
+	return nil
+}
+
+// FindWatchedShowByTVDBID returns a watched show for this user by IMDb id
+func (user *User) FindWatchedShowByIMDBID(imdbid string) *WatchedShow {
+	if user.WatchedShows == nil {
+		return nil
+	}
+
+	for _, show := range user.WatchedShows {
+		if strings.EqualFold(show.Show.IDS.IMDB, imdbid) {
 			return &show
 		}
 	}
