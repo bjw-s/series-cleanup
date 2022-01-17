@@ -225,7 +225,7 @@ func processTvShowFile(mediafile *mediafile.TVShowFile, user *trakt.User) error 
 	}).Debug("Processing tv show file")
 
 	var watchedShow *trakt.WatchedShow
-	if len(mediafile.Mappings.IMDBID) != 0 {
+	if mediafile.Mappings.IMDBID != "" {
 		watchedShow = user.FindWatchedShowByIMDBID(mediafile.Mappings.IMDBID)
 	} else if mediafile.Mappings.TVDBID != 0 {
 		watchedShow = user.FindWatchedShowByTVDBID(mediafile.Mappings.TVDBID)

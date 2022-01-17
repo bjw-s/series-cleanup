@@ -29,10 +29,7 @@ func (tvShowFile *TVShowFile) determineShow(regex string) error {
 	show := filepath.Base(filepath.Dir(tvShowFile.Dir))
 	if len(regex) > 0 {
 		folderRegex := regroup.MustCompile(regex)
-		matches, err := folderRegex.Groups(show)
-		if err != nil {
-			return err
-		}
+		matches, _ := folderRegex.Groups(show)
 
 		if matchShow, ok := matches["Show"]; ok {
 			show = matchShow
