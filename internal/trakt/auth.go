@@ -3,7 +3,6 @@ package trakt
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -78,7 +77,7 @@ func (token *accessToken) WriteToFile(path string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, jsonString, os.ModePerm)
+	err = os.WriteFile(path, jsonString, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -91,7 +90,7 @@ func (token *accessToken) ReadFromFile(path string) error {
 		return fmt.Errorf("file %v does not exist", path)
 	}
 
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}

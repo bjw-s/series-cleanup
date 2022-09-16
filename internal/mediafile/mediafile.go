@@ -2,7 +2,6 @@ package mediafile
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,7 +46,7 @@ func (mediafile *MediaFile) getBasicFileData() error {
 
 func (mediafile *MediaFile) getSubtitleFiles() error {
 	mediaFileBaseName := strings.TrimSuffix(mediafile.Filename, mediafile.Extension)
-	filesInSameFolder, err := ioutil.ReadDir(mediafile.Dir)
+	filesInSameFolder, err := os.ReadDir(mediafile.Dir)
 	if err != nil {
 		return err
 	}
