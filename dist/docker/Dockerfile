@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.19-alpine as build
+FROM docker.io/library/golang:1.19-alpine@sha256:2381c1e5f8350a901597d633b2e517775eeac7a6682be39225a93b22cfd0f8bb as build
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT=""
@@ -14,7 +14,7 @@ WORKDIR /build
 COPY . .
 RUN go build -ldflags="-s -w" -o series-cleanup /build/cmd/series-cleanup/.
 
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:nonroot@sha256:26d07ba1f954c02943786e352bc2c8f4eac719ae2f76a0ced68a953bed93a779
 USER nonroot:nonroot
 COPY --from=build --chown=nonroot:nonroot /build/series-cleanup /app/series-cleanup
 COPY --from=build --chown=nonroot:nonroot /sbin/tini-static /sbin/tini
