@@ -1,3 +1,4 @@
+// Package trakt implements the Trakt.tv API
 package trakt
 
 import (
