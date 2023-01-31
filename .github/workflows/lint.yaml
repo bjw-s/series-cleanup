@@ -42,7 +42,7 @@ jobs:
                     "ACTION_ACTIONLINT",
                     "COPYPASTE_JSCPD",
                     "COPYPASTE_JSCPD",
-                    "GO_GOLANGCI_LINT",
+                    "GO_REVIVE",
                     "REPOSITORY_GIT_DIFF",
                     "REPOSITORY_SECRETLINT",
                   ]
