@@ -4,11 +4,19 @@ package config
 import (
 	"encoding/json"
 	"log"
+	"path"
 	"strings"
 
+	"github.com/knadh/koanf"
+	koanf_json "github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/confmap"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
+
+	"github.com/bjw-s/series-cleanup/internal/helpers"
 	"github.com/bjw-s/series-cleanup/internal/mediafile"
 	"github.com/go-playground/validator/v10"
-	"github.com/spf13/viper"
+	flag "github.com/spf13/pflag"
 )
 
 // Config exposes the collected configuration
@@ -43,33 +51,52 @@ type config struct {
 }
 
 func init() {
-	// Initialize Viper
-	viper.SetConfigName("settings.json")
-	viper.SetConfigType("json")
-	viper.AddConfigPath("/config")  // /config/settings.json
-	viper.AddConfigPath("./config") // ./config/settings.json
-	viper.AddConfigPath(".")        // ./settings.json
-	viper.SetEnvPrefix("sc")        // SC_CONFIG_ITEM
+	var k = koanf.New(".")
 
-	viper.SetDefault("dryRun", false)
-	viper.SetDefault("deleteAfterHours", 24)
-	viper.SetDefault("folderRegex", "(?P<Show>.*)")
-	viper.SetDefault("logLevel", "info")
-	viper.SetDefault("trakt.clientId", nil)
-	viper.SetDefault("trakt.clientSecret", nil)
-	viper.SetDefault("trakt.CacheFolder", "/config")
+	// Use the POSIX compliant pflag lib instead of Go's flag lib.
+	var configFolder = flag.String("configFolder", "/config", "path to store the configuration")
+	flag.Parse()
 
-	// Replace . with _ in Env names
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	viper.AutomaticEnv()
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Read error %v", err)
+	// Check pre-requisites
+	if !helpers.FolderExists(*configFolder) {
+		log.Fatalf("Could not find configuration folder: %s", *configFolder)
 	}
-	if err := viper.Unmarshal(&Config); err != nil {
-		log.Fatalf("unable to unmarshall the config %v", err)
+
+	// Load default values using the confmap provider.
+	// We provide a flat map with the "." delimiter.
+	k.Load(confmap.Provider(map[string]interface{}{
+		"dryRun":            false,
+		"deleteAfterHours":  24,
+		"folderRegex":       "(?P<Show>.*)",
+		"loglevel":          "info",
+		"trakt.CacheFolder": configFolder,
+	}, "."), nil)
+
+	// Load provided JSON config
+	if err := k.Load(file.Provider(path.Join(*configFolder, "settings.json")), koanf_json.Parser()); err != nil {
+		log.Fatalf("Error loading file: %v", err)
 	}
+
+	// Load environment variables and merge into the loaded config.
+	k.Load(env.ProviderWithValue("SC_", ".", func(s string, v string) (string, interface{}) {
+		// Strip out the SC_ prefix and lowercase and get the key while also replacing
+		// the _ character with . in the key (koanf delimeter).
+		key := strings.Replace(strings.ToLower(strings.TrimPrefix(s, "SC_")), "_", ".", -1)
+
+		// If there is a space in the value, split the value into a slice by the space.
+		if strings.Contains(v, " ") {
+			return key, strings.Split(v, " ")
+		}
+
+		// Otherwise, return the plain string.
+		return key, v
+	}), nil)
+
+	k.Unmarshal("", &Config)
+
+	// Validate the rendered configuration
 	validate := validator.New()
+
 	if err := validate.Struct(&Config); err != nil {
 		log.Fatalf("Configuration validation failed: %v\n", err)
 	}

@@ -23,13 +23,6 @@ func main() {
 		zap.Any("configuration", config.Config),
 	)
 
-	// Check pre-requisites
-	if !helpers.FolderExists(config.Config.Trakt.CacheFolder) {
-		logger.Fatal("Could not find Trakt cache folder",
-			zap.String("folder", config.Config.Trakt.CacheFolder),
-		)
-	}
-
 	// Initialize Trakt API
 	var traktAPI = trakt.API{}
 	traktAPI.ClientID = config.Config.Trakt.ClientID
