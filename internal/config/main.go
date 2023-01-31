@@ -25,7 +25,6 @@ func (s sensitiveString) MarshalJSON() ([]byte, error) {
 
 type config struct {
 	DeleteAfterHours int    `mapstructure:"deleteAfterHours"`
-	DevelopmentMode  bool   `mapstructure:"devMode"`
 	DryRun           bool   `mapstructure:"dryRun"`
 	FolderRegex      string `mapstructure:"folderRegex"`
 	LogLevel         string `mapstructure:"logLevel"`
@@ -52,11 +51,12 @@ func init() {
 	viper.AddConfigPath(".")        // ./settings.json
 	viper.SetEnvPrefix("sc")        // SC_CONFIG_ITEM
 
-	viper.SetDefault("devMode", false)
 	viper.SetDefault("dryRun", false)
 	viper.SetDefault("deleteAfterHours", 24)
 	viper.SetDefault("folderRegex", "(?P<Show>.*)")
 	viper.SetDefault("logLevel", "info")
+	viper.SetDefault("trakt.clientId", nil)
+	viper.SetDefault("trakt.clientSecret", nil)
 	viper.SetDefault("trakt.CacheFolder", "/config")
 
 	// Replace . with _ in Env names
