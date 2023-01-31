@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Config exposes the collected configuration
 var Config config
 
 type sensitiveString string
@@ -41,7 +42,7 @@ type config struct {
 	}
 }
 
-func Init() {
+func init() {
 	// Initialize Viper
 	viper.SetConfigName("settings.json")
 	viper.SetConfigType("json")

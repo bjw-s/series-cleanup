@@ -38,7 +38,7 @@ func (code *deviceCode) ExchangeForAccessToken(api *API) (*accessToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	return getAccessTokenDataFromApiResponse(result)
+	return getAccessTokenDataFromAPIResponse(result)
 }
 
 type accessTokenRefreshPayload struct {
@@ -129,10 +129,10 @@ func (token *accessToken) Refresh(api *API) (*accessToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	return getAccessTokenDataFromApiResponse(result)
+	return getAccessTokenDataFromAPIResponse(result)
 }
 
-func getAccessTokenDataFromApiResponse(response *apiResponse) (*accessToken, error) {
+func getAccessTokenDataFromAPIResponse(response *apiResponse) (*accessToken, error) {
 	switch response.StatusCode {
 	case 200:
 		accessTokenData := accessToken{}

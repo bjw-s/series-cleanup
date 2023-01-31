@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-	config.Init()
 	logger.SetLevel(config.Config.LogLevel)
 
 	logger.Debug("Loaded configuration",
