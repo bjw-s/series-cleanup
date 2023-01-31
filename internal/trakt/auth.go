@@ -38,18 +38,7 @@ func (code *deviceCode) ExchangeForAccessToken(api *API) (*accessToken, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	switch result.StatusCode {
-	case 200:
-		accessTokenData := accessToken{}
-		err = json.Unmarshal(result.Body, &accessTokenData)
-		if err != nil {
-			return nil, err
-		}
-		return &accessTokenData, nil
-	default:
-		return nil, nil
-	}
+	return getAccessTokenDataFromApiResponse(result)
 }
 
 type accessTokenRefreshPayload struct {
@@ -140,17 +129,20 @@ func (token *accessToken) Refresh(api *API) (*accessToken, error) {
 	if err != nil {
 		return nil, err
 	}
+	return getAccessTokenDataFromApiResponse(result)
+}
 
-	switch result.StatusCode {
+func getAccessTokenDataFromApiResponse(response *apiResponse) (*accessToken, error) {
+	switch response.StatusCode {
 	case 200:
 		accessTokenData := accessToken{}
-		err = json.Unmarshal(result.Body, &accessTokenData)
+		err := json.Unmarshal(response.Body, &accessTokenData)
 		if err != nil {
 			return nil, err
 		}
 		return &accessTokenData, nil
 	default:
-		return nil, fmt.Errorf("could not refresh access token")
+		return nil, fmt.Errorf("could not get access token")
 	}
 }
 
