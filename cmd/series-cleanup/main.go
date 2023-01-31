@@ -1,3 +1,4 @@
+// Package main implements all application logic for series-cleanup
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package logger implements all logging aspects of series-cleanup
 package logger
 
 import (

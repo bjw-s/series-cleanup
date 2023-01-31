@@ -1,3 +1,4 @@
+// Package config implements all configuration aspects of series-cleanup
 package config
 
 import (
