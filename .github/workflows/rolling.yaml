@@ -57,7 +57,6 @@ jobs:
           file: ./dist/docker/Dockerfile
           tags: |
             ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/series-cleanup:rolling
-            ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/series-cleanup:${{ steps.prep.outputs.version }}
           labels: |
             org.opencontainers.image.version="${{ steps.prep.outputs.version }}"
           platforms: linux/amd64,linux/arm64
