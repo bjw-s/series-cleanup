@@ -2,7 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>bjw-s/renovate-config",
-    "github>bjw-s/renovate-config:automerge-github-actions"
+    "github>bjw-s/renovate-config:automerge-github-actions",
+    "github>bjw-s/renovate-config:automerge-docker-digest",
   ],
   "platform": "github",
   "username": "bjw-s-bot[bot]",
