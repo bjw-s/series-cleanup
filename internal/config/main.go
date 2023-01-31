@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/bjw-s/seriescleanup/internal/mediafile"
+	"github.com/bjw-s/series-cleanup/internal/mediafile"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 )

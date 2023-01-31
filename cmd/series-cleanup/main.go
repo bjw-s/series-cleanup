@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bjw-s/seriescleanup/internal/config"
-	"github.com/bjw-s/seriescleanup/internal/helpers"
-	"github.com/bjw-s/seriescleanup/internal/logger"
-	"github.com/bjw-s/seriescleanup/internal/mediafile"
-	"github.com/bjw-s/seriescleanup/internal/trakt"
+	"github.com/bjw-s/series-cleanup/internal/config"
+	"github.com/bjw-s/series-cleanup/internal/helpers"
+	"github.com/bjw-s/series-cleanup/internal/logger"
+	"github.com/bjw-s/series-cleanup/internal/mediafile"
+	"github.com/bjw-s/series-cleanup/internal/trakt"
 	"go.uber.org/zap"
 )
 

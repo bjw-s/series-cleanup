@@ -1,4 +1,4 @@
-module github.com/bjw-s/seriescleanup
+module github.com/bjw-s/series-cleanup
 
 go 1.19
 

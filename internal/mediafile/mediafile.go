@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bjw-s/seriescleanup/internal/helpers"
+	"github.com/bjw-s/series-cleanup/internal/helpers"
 )
 
 var mediaFileExtensions = []string{".avi", ".mkv", ".mp4"}
