@@ -1,10 +1,14 @@
 ---
-name: Release
+name: Pull Request
 
 on:
-  release:
-    types:
-      - published
+  pull_request:
+    paths:
+      - ".github/workflows/pull-request.yaml"
+      - ".dockerignore"
+      - "dist/docker/Dockerfile"
+      - "**.go"
+      - "go.*"
 
 env:
   # Registry where the image is stored
@@ -29,7 +33,7 @@ jobs:
       - name: Prepare environment vars
         id: prep
         run: |
-          echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+          echo "version=$(echo "$GITHUB_REF" | awk -F / '{print $3}')" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -50,7 +54,6 @@ jobs:
           context: .
           file: ./dist/docker/Dockerfile
           tags: |
-            ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/series-cleanup:latest
             ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/series-cleanup:${{ steps.prep.outputs.version }}
           labels: |
             org.opencontainers.image.version="${{ steps.prep.outputs.version }}"
