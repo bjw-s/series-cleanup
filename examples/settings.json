@@ -1,31 +1,25 @@
 {
-    "general": {
-        "deleteAfterHours": 24,
-        "dryRun": true
+  "deleteAfterHours": 24,
+  "dryRun": true,
+  "loglevel": "debug",
+  "trakt": {
+    "clientId": "<Trakt.tv client ID>",
+    "clientSecret": "<Trakt.tv client secret>",
+    "user": "<Trakt.tv username>"
+  },
+  "scanFolders": ["/Media/Series"],
+  "overrides": [
+    {
+      "folder": "Greys Anatomy",
+      "mapping": {
+        "traktName": "Grey's Anatomy"
+      }
     },
-    "trakt": {
-        "clientId": "<Trakt.tv client ID>",
-        "clientSecret": "<Trakt.tv client secret>",
-        "user": "<Trakt.tv username>"
-    },
-    "logging": {
-        "loglevel": "info"
-    },
-    "scanFolders": [
-        "/Media/Series"
-    ],
-    "overrides": [
-        {
-            "folder" :"Greys Anatomy",
-            "mapping": {
-                "traktName": "Grey's Anatomy"
-            }
-        },
-        { 
-            "folder": "Battlestar Galactica",
-            "mapping": {
-                "tvdbid": 73545
-            }
-        }
-    ]
+    {
+      "folder": "Battlestar Galactica",
+      "mapping": {
+        "tvdbid": 73545
+      }
+    }
+  ]
 }
