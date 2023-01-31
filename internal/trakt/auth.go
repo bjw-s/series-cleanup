@@ -1,3 +1,4 @@
+// Package trakt implements the Trakt.tv API
 package trakt
 
 import (
@@ -38,18 +39,7 @@ func (code *deviceCode) ExchangeForAccessToken(api *API) (*accessToken, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	switch result.StatusCode {
-	case 200:
-		accessTokenData := accessToken{}
-		err = json.Unmarshal(result.Body, &accessTokenData)
-		if err != nil {
-			return nil, err
-		}
-		return &accessTokenData, nil
-	default:
-		return nil, nil
-	}
+	return getAccessTokenDataFromAPIResponse(result)
 }
 
 type accessTokenRefreshPayload struct {
@@ -140,17 +130,20 @@ func (token *accessToken) Refresh(api *API) (*accessToken, error) {
 	if err != nil {
 		return nil, err
 	}
+	return getAccessTokenDataFromAPIResponse(result)
+}
 
-	switch result.StatusCode {
+func getAccessTokenDataFromAPIResponse(response *apiResponse) (*accessToken, error) {
+	switch response.StatusCode {
 	case 200:
 		accessTokenData := accessToken{}
-		err = json.Unmarshal(result.Body, &accessTokenData)
+		err := json.Unmarshal(response.Body, &accessTokenData)
 		if err != nil {
 			return nil, err
 		}
 		return &accessTokenData, nil
 	default:
-		return nil, fmt.Errorf("could not refresh access token")
+		return nil, fmt.Errorf("could not get access token")
 	}
 }
 

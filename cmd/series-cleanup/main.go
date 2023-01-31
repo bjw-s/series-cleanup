@@ -1,149 +1,75 @@
+// Package main implements all application logic for series-cleanup
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/apex/log"
+	"github.com/bjw-s/seriescleanup/internal/config"
 	"github.com/bjw-s/seriescleanup/internal/helpers"
+	"github.com/bjw-s/seriescleanup/internal/logger"
 	"github.com/bjw-s/seriescleanup/internal/mediafile"
 	"github.com/bjw-s/seriescleanup/internal/trakt"
+	"go.uber.org/zap"
 )
 
-type config struct {
-	General struct {
-		DryRun           bool
-		DeleteAfterHours int
-	}
-	Trakt struct {
-		ClientID     string
-		ClientSecret string
-		User         string
-	}
-	Logging struct {
-		Loglevel string
-	}
-	ScanFolders []string
-	FolderRegex string
-	Overrides   []struct {
-		Folder  string
-		Mapping mediafile.ShowMapping
-		Skip    bool
-	}
-}
-
-const scriptName = "seriescleanup"
-
-var configData config
-var configFile string
-var dataFolder string
-
 func main() {
-	flag.StringVar(&configFile, "c", "settings.json", "Specify config file to use")
-	flag.StringVar(&dataFolder, "d", "/data", "Specify folder to store data")
-	flag.Parse()
+	logger.SetLevel(config.Config.LogLevel)
 
-	log.WithFields(log.Fields{
-		"configFile": configFile,
-		"dataFolder": dataFolder,
-	}).Info("Running...")
+	logger.Debug("Loaded configuration",
+		zap.Any("configuration", config.Config),
+	)
 
 	// Check pre-requisites
-	if !helpers.FolderExists(dataFolder) {
-		log.WithFields(log.Fields{
-			"folder": dataFolder,
-		}).Fatal("Could not find data folder")
+	if !helpers.FolderExists(config.Config.Trakt.CacheFolder) {
+		logger.Fatal("Could not find Trakt cache folder",
+			zap.String("folder", config.Config.Trakt.CacheFolder),
+		)
 	}
-
-	if !helpers.FileExists(configFile) {
-		log.WithFields(log.Fields{
-			"file": configFile,
-		}).Fatal("Could not find configuration file")
-	}
-
-	// Read configuration file
-	file, err := os.ReadFile(configFile)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"file":    configFile,
-			"message": err.Error(),
-		}).Fatal("Could not read file")
-	}
-	configData = config{}
-
-	err = json.Unmarshal([]byte(file), &configData)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"file":    configFile,
-			"message": err.Error(),
-		}).Fatal("Could not parse config file")
-	}
-
-	if configData.Trakt.ClientID == "" {
-		traktClientID, exists := os.LookupEnv("TRAKT_CLIENT_ID")
-		if exists {
-			configData.Trakt.ClientID = traktClientID
-		} else {
-			log.Fatal("No Trakt Client ID set")
-		}
-	}
-
-	if configData.Trakt.ClientSecret == "" {
-		traktClientSecret, exists := os.LookupEnv("TRAKT_CLIENT_SECRET")
-		if exists {
-			configData.Trakt.ClientSecret = traktClientSecret
-		} else {
-			log.Fatal("No Trakt Client Secret set")
-		}
-	}
-
-	log.SetLevelFromString(configData.Logging.Loglevel)
 
 	// Initialize Trakt API
 	var traktAPI = trakt.API{}
-	traktAPI.ClientID = configData.Trakt.ClientID
-	traktAPI.ClientSecret = configData.Trakt.ClientSecret
-	traktAPI.DataPath = dataFolder
+	traktAPI.ClientID = config.Config.Trakt.ClientID
+	traktAPI.ClientSecret = string(config.Config.Trakt.ClientSecret)
+	traktAPI.DataPath = config.Config.Trakt.CacheFolder
 
-	err = traktAPI.Authenticate()
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err.Error(),
-		}).Fatal("Could not authenticate with Trakt")
+	if err := traktAPI.Authenticate(); err != nil {
+		logger.Fatal("Could not authenticate with Trakt",
+			zap.Error(err),
+		)
 	}
 
-	log.Info("Successfully authenticated with Trakt")
+	logger.Info("Successfully authenticated with Trakt")
 
 	// Get User data from Trakt
 	var traktUser = trakt.User{}
-	traktUser.Name = configData.Trakt.User
+	traktUser.Name = config.Config.Trakt.User
 
-	err = traktUser.GetWatchedShows(traktAPI)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err.Error(),
-		}).Fatal("Could not get watched shows from Trakt")
+	if err := traktUser.GetWatchedShows(traktAPI); err != nil {
+		logger.Fatal("Could not get watched shows from Trakt",
+			zap.Error(err),
+		)
 	}
 
-	for _, scanFolder := range configData.ScanFolders {
-		log.WithFields(log.Fields{
-			"folder": scanFolder,
-		}).Info("Processing...")
+	for _, scanFolder := range config.Config.ScanFolders {
+		logger.Info("Processing...",
+			zap.String("folder", scanFolder),
+		)
 
 		if !helpers.FolderExists(scanFolder) {
-			log.WithFields(log.Fields{
-				"folder": scanFolder,
-			}).Fatal("Folder does not exist")
+			logger.Fatal("Folder does not exist",
+				zap.String("folder", scanFolder),
+			)
 		}
 
 		tvShowFiles, err := collectTvShowFiles(scanFolder)
 		if err != nil {
-			log.Fatal(err.Error())
+			logger.Fatal("Could not collect TV show files",
+				zap.Error(err),
+			)
 		}
 
 		tvShowFilesLength := len(tvShowFiles)
@@ -155,7 +81,9 @@ func main() {
 				defer waitgroup.Done()
 				err := processTvShowFile(tvShowFiles[i], &traktUser)
 				if err != nil {
-					log.Fatal(err.Error())
+					logger.Fatal("Could not process TV show file",
+						zap.Error(err),
+					)
 				}
 			}(i)
 		}
@@ -163,9 +91,7 @@ func main() {
 		waitgroup.Wait()
 	}
 
-	log.WithFields(log.Fields{
-		"script": scriptName,
-	}).Info("Finished...")
+	logger.Info("Finished...")
 }
 
 func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
@@ -184,14 +110,14 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 			return nil
 		}
 
-		file, err := mediafile.NewTVShowFile(path, configData.FolderRegex)
+		file, err := mediafile.NewTVShowFile(path, config.Config.FolderRegex)
 		if err != nil {
 			return err
 		}
 		if file != nil {
 			// Add mappings
 			skipShow := false
-			for _, item := range configData.Overrides {
+			for _, item := range config.Config.Overrides {
 				parentFolderName := filepath.Base(filepath.Dir(file.Dir))
 				if strings.EqualFold(parentFolderName, item.Folder) {
 					file.Mappings = item.Mapping
@@ -202,10 +128,11 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 			if !skipShow {
 				tvShowFiles = append(tvShowFiles, file)
 			} else {
-				log.WithFields(log.Fields{
-					"show": file.Show,
-					"file": file.Filename,
-				}).Debug("Show is configured to be skipped...")
+				logger.Debug("Skipped",
+					zap.String("show", file.Show),
+					zap.String("file", file.Filename),
+					zap.String("reason", "Configured to be skipped"),
+				)
 				return nil
 			}
 		}
@@ -218,10 +145,10 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 }
 
 func processTvShowFile(mediafile *mediafile.TVShowFile, user *trakt.User) error {
-	log.WithFields(log.Fields{
-		"dir":  mediafile.Dir,
-		"file": mediafile.Filename,
-	}).Debug("Processing tv show file")
+	logger.Debug("Processing tv show file",
+		zap.String("dir", mediafile.Dir),
+		zap.String("file", mediafile.Filename),
+	)
 
 	var watchedShow *trakt.WatchedShow
 	if mediafile.Mappings.IMDBID != "" {
@@ -235,43 +162,46 @@ func processTvShowFile(mediafile *mediafile.TVShowFile, user *trakt.User) error 
 	}
 
 	if watchedShow == nil {
-		log.WithFields(log.Fields{
-			"show": mediafile.Show,
-		}).Debug("Show is unwatched or could not be found, skipping...")
+		logger.Debug("Skipped",
+			zap.String("show", mediafile.Show),
+			zap.String("file", mediafile.Filename),
+			zap.String("reason", "Show is unwatched or could not be found"),
+		)
 		return nil
 	}
 
 	season := watchedShow.FindSeason(mediafile.Season)
 	if season == nil {
-		log.WithFields(log.Fields{
-			"show":   watchedShow.Show.Title,
-			"season": mediafile.Season,
-		}).Debug("Season is unwatched, skipping...")
+		logger.Debug("Skipped",
+			zap.String("show", watchedShow.Show.Title),
+			zap.String("file", mediafile.Filename),
+			zap.String("reason", "Season is unwatched"),
+		)
 		return nil
 	}
 
 	episode := season.FindEpisode(mediafile.Episode)
 	if episode == nil {
-		log.WithFields(log.Fields{
-			"show":    watchedShow.Show.Title,
-			"season":  mediafile.Season,
-			"episode": mediafile.Episode,
-		}).Debug("Episode is unwatched, skipping...")
+		logger.Debug("Skipped",
+			zap.String("show", watchedShow.Show.Title),
+			zap.String("file", mediafile.Filename),
+			zap.String("reason", "Episode is unwatched"),
+		)
 		return nil
 	}
 
-	watchedBeforeTime := time.Now().Add(-time.Duration(int64(configData.General.DeleteAfterHours) * int64(time.Hour)))
+	watchedBeforeTime := time.Now().Add(-time.Duration(int64(config.Config.DeleteAfterHours) * int64(time.Hour)))
 	if episode.LastWatchedBefore(watchedBeforeTime) {
-		if configData.General.DryRun {
-			log.WithFields(log.Fields{
-				"dir":  mediafile.Dir,
-				"file": mediafile.Filename,
-			}).Info("Tv show file would have been removed")
+		if config.Config.DryRun {
+			logger.Info("TV show file would have been removed",
+				zap.String("dir", mediafile.Dir),
+				zap.String("file", mediafile.Filename),
+			)
 		} else {
-			log.WithFields(log.Fields{
-				"dir":  mediafile.Dir,
-				"file": mediafile.Filename,
-			}).Info("Removing tv show file")
+			logger.Info("Removing tv show file",
+				zap.String("dir", mediafile.Dir),
+				zap.String("file", mediafile.Filename),
+			)
 			err := mediafile.DeleteWithSubtitleFiles()
 			if err != nil {
 				return err
