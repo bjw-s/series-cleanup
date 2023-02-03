@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/bjw-s/series-cleanup/internal/config"
@@ -14,6 +13,7 @@ import (
 	"github.com/bjw-s/series-cleanup/internal/mediafile"
 	"github.com/bjw-s/series-cleanup/internal/trakt"
 	"github.com/samber/lo"
+	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
 )
 
@@ -66,23 +66,14 @@ func main() {
 			)
 		}
 
-		tvShowFilesLength := len(tvShowFiles)
-		var waitgroup sync.WaitGroup
-		waitgroup.Add(tvShowFilesLength)
-
-		for i := 0; i < tvShowFilesLength; i++ {
-			go func(i int) {
-				defer waitgroup.Done()
-				err := processTvShowFile(tvShowFiles[i], &traktUser)
-				if err != nil {
-					logger.Fatal("Could not process TV show file",
-						zap.Error(err),
-					)
-				}
-			}(i)
-		}
-
-		waitgroup.Wait()
+		lop.ForEach(tvShowFiles, func(file *mediafile.TVShowFile, _ int) {
+			err := processTvShowFile(file, &traktUser)
+			if err != nil {
+				logger.Fatal("Could not process TV show file",
+					zap.Error(err),
+				)
+			}
+		})
 	}
 
 	logger.Info("Finished...")
@@ -112,6 +103,7 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 			// Add mappings
 			skipShow := false
 			var skipSeasons []int
+
 			for _, item := range config.Config.Overrides {
 				parentFolderName := filepath.Base(filepath.Dir(file.Dir))
 				if strings.EqualFold(parentFolderName, item.Folder) {

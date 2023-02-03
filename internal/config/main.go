@@ -31,24 +31,28 @@ func (s sensitiveString) MarshalJSON() ([]byte, error) {
 	return json.Marshal("[REDACTED]")
 }
 
+type folderOverride struct {
+	Folder      string                `mapstructure:"folder"`
+	Mapping     mediafile.ShowMapping `mapstructure:"mapping"`
+	Skip        bool                  `mapstructure:"skip"`
+	SkipSeasons []int                 `mapstructure:"skipSeasons"`
+}
+
+type traktConfig struct {
+	CacheFolder  string          `mapstructure:"cacheFolder"`
+	ClientID     string          `mapstructure:"clientId" validate:"required"`
+	ClientSecret sensitiveString `mapstructure:"clientSecret" validate:"required"`
+	User         string          `mapstructure:"user" validate:"required"`
+}
+
 type config struct {
-	DeleteAfterHours int    `mapstructure:"deleteAfterHours"`
-	DryRun           bool   `mapstructure:"dryRun"`
-	FolderRegex      string `mapstructure:"folderRegex"`
-	LogLevel         string `mapstructure:"logLevel"`
-	Overrides        []struct {
-		Folder      string                `mapstructure:"folder"`
-		Mapping     mediafile.ShowMapping `mapstructure:"mapping"`
-		Skip        bool                  `mapstructure:"skip"`
-		SkipSeasons []int                 `mapstructure:"skipSeasons"`
-	}
-	ScanFolders []string `mapstructure:"scanFolders"`
-	Trakt       struct {
-		CacheFolder  string          `mapstructure:"cacheFolder"`
-		ClientID     string          `mapstructure:"clientId" validate:"required"`
-		ClientSecret sensitiveString `mapstructure:"clientSecret" validate:"required"`
-		User         string          `mapstructure:"user" validate:"required"`
-	}
+	DeleteAfterHours int              `mapstructure:"deleteAfterHours"`
+	DryRun           bool             `mapstructure:"dryRun"`
+	FolderRegex      string           `mapstructure:"folderRegex"`
+	LogLevel         string           `mapstructure:"logLevel"`
+	Overrides        []folderOverride `mapstructure:"overrides"`
+	ScanFolders      []string         `mapstructure:"scanFolders"`
+	Trakt            traktConfig      `mapstructure:"trakt"`
 }
 
 func init() {
