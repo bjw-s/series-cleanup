@@ -37,13 +37,14 @@ type config struct {
 	FolderRegex      string `mapstructure:"folderRegex"`
 	LogLevel         string `mapstructure:"logLevel"`
 	Overrides        []struct {
-		Folder  string
-		Mapping mediafile.ShowMapping
-		Skip    bool
+		Folder      string                `mapstructure:"folder"`
+		Mapping     mediafile.ShowMapping `mapstructure:"mapping"`
+		Skip        bool                  `mapstructure:"skip"`
+		SkipSeasons []int                 `mapstructure:"skipSeasons"`
 	}
 	ScanFolders []string `mapstructure:"scanFolders"`
 	Trakt       struct {
-		CacheFolder  string
+		CacheFolder  string          `mapstructure:"cacheFolder"`
 		ClientID     string          `mapstructure:"clientId" validate:"required"`
 		ClientSecret sensitiveString `mapstructure:"clientSecret" validate:"required"`
 		User         string          `mapstructure:"user" validate:"required"`

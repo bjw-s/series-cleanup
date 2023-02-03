@@ -110,24 +110,36 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 		if file != nil {
 			// Add mappings
 			skipShow := false
+			var skipSeasons []int
 			for _, item := range config.Config.Overrides {
 				parentFolderName := filepath.Base(filepath.Dir(file.Dir))
 				if strings.EqualFold(parentFolderName, item.Folder) {
 					file.Mappings = item.Mapping
 					skipShow = item.Skip
+					skipSeasons = item.SkipSeasons
 					break
 				}
 			}
-			if !skipShow {
-				tvShowFiles = append(tvShowFiles, file)
-			} else {
+
+			if skipShow {
 				logger.Debug("Skipped",
 					zap.String("show", file.Show),
 					zap.String("file", file.Filename),
-					zap.String("reason", "Configured to be skipped"),
+					zap.String("reason", "Show is configured to be skipped"),
 				)
 				return nil
 			}
+
+			if helpers.SliceContainsInt(skipSeasons, file.Season) {
+				logger.Debug("Skipped",
+					zap.String("show", file.Show),
+					zap.String("file", file.Filename),
+					zap.String("reason", "Season is configured to be skipped"),
+				)
+				return nil
+			}
+
+			tvShowFiles = append(tvShowFiles, file)
 		}
 		return nil
 	})

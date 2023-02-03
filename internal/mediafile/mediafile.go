@@ -56,8 +56,7 @@ func (mediafile *MediaFile) getSubtitleFiles() error {
 			continue
 		}
 
-		_, isSubtitleFile := helpers.FindInSlice(subtitleFileExtensions, strings.ToLower(filepath.Ext(file.Name())))
-		if !isSubtitleFile {
+		if !helpers.SliceContainsString(subtitleFileExtensions, strings.ToLower(filepath.Ext(file.Name()))) {
 			continue
 		}
 
@@ -94,6 +93,5 @@ func (mediafile *MediaFile) DeleteWithSubtitleFiles() error {
 
 // IsMediaFile indicates if a file has a valid media file extension
 func IsMediaFile(path string) bool {
-	_, isMediaFile := helpers.FindInSlice(mediaFileExtensions, strings.ToLower(filepath.Ext(path)))
-	return isMediaFile
+	return helpers.SliceContainsString(mediaFileExtensions, strings.ToLower(filepath.Ext(path)))
 }

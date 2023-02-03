@@ -5,15 +5,35 @@ import (
 	"os"
 )
 
-// FindInSlice takes a slice and looks for an element in it. If found it will
+// SliceContainsString takes a slice and looks for an element in it. If found it will
 // return it's key, otherwise it will return -1 and a bool of false.
-func FindInSlice(slice []string, val string) (int, bool) {
-	for i, item := range slice {
+func SliceContainsString(slice []string, val string) bool {
+	s := make([]interface{}, len(slice))
+	for i, v := range slice {
+		s[i] = v
+	}
+	return SliceContains(s, val)
+}
+
+// SliceContainsInt takes a slice and looks for an element in it. If found it will
+// return it's key, otherwise it will return -1 and a bool of false.
+func SliceContainsInt(slice []int, val int) bool {
+	s := make([]interface{}, len(slice))
+	for i, v := range slice {
+		s[i] = v
+	}
+	return SliceContains(s, val)
+}
+
+// SliceContains takes a slice and looks for an element in it. If found it will
+// return it's key, otherwise it will return -1 and a bool of false.
+func SliceContains(slice []interface{}, val interface{}) bool {
+	for _, item := range slice {
 		if item == val {
-			return i, true
+			return true
 		}
 	}
-	return -1, false
+	return false
 }
 
 // FileExists takes a string returns if it is an existing file

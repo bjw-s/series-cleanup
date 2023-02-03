@@ -10,6 +10,10 @@
   "scanFolders": ["/Media/Series"],
   "overrides": [
     {
+      "folder": "Game of Thrones",
+      "skipSeasons": [1,2,3,4,5,6]
+    },
+    {
       "folder": "Greys Anatomy",
       "mapping": {
         "traktName": "Grey's Anatomy"
