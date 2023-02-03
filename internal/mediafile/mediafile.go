@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bjw-s/series-cleanup/internal/helpers"
+	"github.com/samber/lo"
 )
 
 var mediaFileExtensions = []string{".avi", ".mkv", ".mp4"}
@@ -56,7 +56,7 @@ func (mediafile *MediaFile) getSubtitleFiles() error {
 			continue
 		}
 
-		if !helpers.SliceContainsString(subtitleFileExtensions, strings.ToLower(filepath.Ext(file.Name()))) {
+		if lo.Contains(subtitleFileExtensions, strings.ToLower(filepath.Ext(file.Name()))) {
 			continue
 		}
 
@@ -93,5 +93,5 @@ func (mediafile *MediaFile) DeleteWithSubtitleFiles() error {
 
 // IsMediaFile indicates if a file has a valid media file extension
 func IsMediaFile(path string) bool {
-	return helpers.SliceContainsString(mediaFileExtensions, strings.ToLower(filepath.Ext(path)))
+	return lo.Contains(mediaFileExtensions, strings.ToLower(filepath.Ext(path)))
 }

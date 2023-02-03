@@ -6,6 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/knadh/koanf v1.5.0
 	github.com/oriser/regroup v0.0.0-20210730155327-fca8d7531263
+	github.com/samber/lo v1.37.0
 	github.com/spf13/pflag v1.0.5
 	go.uber.org/zap v1.24.0
 )
@@ -22,6 +23,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 )

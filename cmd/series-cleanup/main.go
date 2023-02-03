@@ -13,6 +13,7 @@ import (
 	"github.com/bjw-s/series-cleanup/internal/logger"
 	"github.com/bjw-s/series-cleanup/internal/mediafile"
 	"github.com/bjw-s/series-cleanup/internal/trakt"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -130,7 +131,7 @@ func collectTvShowFiles(scanFolder string) ([]*mediafile.TVShowFile, error) {
 				return nil
 			}
 
-			if helpers.SliceContainsInt(skipSeasons, file.Season) {
+			if lo.Contains(skipSeasons, file.Season) {
 				logger.Debug("Skipped",
 					zap.String("show", file.Show),
 					zap.String("file", file.Filename),
