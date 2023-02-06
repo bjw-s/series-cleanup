@@ -14,13 +14,12 @@ import (
 	"github.com/knadh/koanf/providers/file"
 
 	"github.com/bjw-s/series-cleanup/internal/helpers"
-	"github.com/bjw-s/series-cleanup/internal/mediafile"
 	"github.com/go-playground/validator/v10"
 	flag "github.com/spf13/pflag"
 )
 
-// Config exposes the collected configuration
-var Config config
+// AppConfig exposes the collected configuration
+var AppConfig Config
 
 type sensitiveString string
 
@@ -31,28 +30,47 @@ func (s sensitiveString) MarshalJSON() ([]byte, error) {
 	return json.Marshal("[REDACTED]")
 }
 
-type folderOverride struct {
-	Folder      string                `mapstructure:"folder"`
-	Mapping     mediafile.ShowMapping `mapstructure:"mapping"`
-	Skip        bool                  `mapstructure:"skip"`
-	SkipSeasons []int                 `mapstructure:"skipSeasons"`
+type folderSettingsIdentifiers struct {
+	Trakt int    `mapstructure:"trakt"`
+	Slug  string `mapstructure:"slug"`
+	IMDB  string `mapstructure:"imdb"`
+	TVDB  int    `mapstructure:"tvdb"`
+	TMDB  int    `mapstructure:"tmdb"`
+}
+
+// FolderSettings represents settings specific to this folder
+type FolderSettings struct {
+	Folder      string
+	Identifiers folderSettingsIdentifiers
+	KeepShow    bool  `validate:"excluded_with_all=KeepSeasons"`
+	KeepSeasons []int `validate:"excluded_with_all=KeepShow"`
 }
 
 type traktConfig struct {
-	CacheFolder  string          `mapstructure:"cacheFolder"`
-	ClientID     string          `mapstructure:"clientId" validate:"required"`
-	ClientSecret sensitiveString `mapstructure:"clientSecret" validate:"required"`
-	User         string          `mapstructure:"user" validate:"required"`
+	Enabled      bool
+	CacheFolder  string
+	ClientID     string          `validate:"required_if=Enabled true"`
+	ClientSecret sensitiveString `validate:"required_if=Enabled true"`
+	User         string          `validate:"required_if=Enabled true"`
 }
 
-type config struct {
-	DeleteAfterHours int              `mapstructure:"deleteAfterHours"`
-	DryRun           bool             `mapstructure:"dryRun"`
-	FolderRegex      string           `mapstructure:"folderRegex"`
-	LogLevel         string           `mapstructure:"logLevel"`
-	Overrides        []folderOverride `mapstructure:"overrides"`
-	ScanFolders      []string         `mapstructure:"scanFolders"`
-	Trakt            traktConfig      `mapstructure:"trakt"`
+type plexConfig struct {
+	Enabled bool
+	Token   sensitiveString `validate:"required_if=Enabled true"`
+}
+
+// Config represents the application configuration structure
+type Config struct {
+	DeleteAfterHours int
+	DryRun           bool
+	FolderRegex      string
+	LogLevel         string
+	FolderSettings   []FolderSettings `validate:"dive"`
+	ScanFolders      []string         `validate:"dive"`
+	Sources          struct {
+		Trakt traktConfig
+		Plex  plexConfig
+	} `validate:"dive"`
 }
 
 func init() {
@@ -70,11 +88,11 @@ func init() {
 	// Load default values using the confmap provider.
 	// We provide a flat map with the "." delimiter.
 	k.Load(confmap.Provider(map[string]interface{}{
-		"dryRun":            false,
-		"deleteAfterHours":  24,
-		"folderRegex":       "(?P<Show>.*)",
-		"loglevel":          "info",
-		"trakt.CacheFolder": configFolder,
+		"dryRun":                    false,
+		"deleteAfterHours":          24,
+		"folderRegex":               "(?P<Show>.*)",
+		"loglevel":                  "info",
+		"sources.trakt.CacheFolder": configFolder,
 	}, "."), nil)
 
 	// Load provided JSON config
@@ -97,12 +115,12 @@ func init() {
 		return key, v
 	}), nil)
 
-	k.Unmarshal("", &Config)
+	k.Unmarshal("", &AppConfig)
 
 	// Validate the rendered configuration
 	validate := validator.New()
 
-	if err := validate.Struct(&Config); err != nil {
+	if err := validate.Struct(AppConfig); err != nil {
 		log.Fatalf("Configuration validation failed: %v\n", err)
 	}
 }

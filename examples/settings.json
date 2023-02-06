@@ -2,28 +2,36 @@
   "deleteAfterHours": 24,
   "dryRun": true,
   "loglevel": "debug",
-  "trakt": {
-    "clientId": "<Trakt.tv client ID>",
-    "clientSecret": "<Trakt.tv client secret>",
-    "user": "<Trakt.tv username>"
+  "sources": {
+    "trakt": {
+      "enabled": true,
+      "clientId": "<Trakt.tv client ID>",
+      "clientSecret": "<Trakt.tv client secret>",
+      "user": "<Trakt.tv username>"
+    }
   },
   "scanFolders": ["/Media/Series"],
-  "overrides": [
+  "folderSettings": [
     {
       "folder": "Game of Thrones",
-      "skipSeasons": [1,2,3,4,5,6]
+      "keepSeasons": [1, 2, 3, 4, 5, 6]
     },
     {
       "folder": "Greys Anatomy",
-      "mapping": {
-        "traktName": "Grey's Anatomy"
+      "keepShow": true,
+      "identifiers": {
+        "slug": "grey-s-anatomy"
       }
     },
     {
       "folder": "Battlestar Galactica",
-      "mapping": {
+      "identifiers": {
         "tvdbid": 73545
       }
+    },
+    {
+      "folder": "The Daily Show",
+      "keepSeasons": [-1]
     }
   ]
 }
