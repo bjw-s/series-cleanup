@@ -30,8 +30,7 @@ type File struct {
 	Season  int
 	Episode int
 
-	KeepShow    bool
-	KeepSeasons []int
+	Rules config.FolderRules
 
 	Identifiers Identifiers
 }
@@ -115,8 +114,7 @@ func (tvShowFile *File) processFolderSettings() error {
 			tvShowFile.Identifiers.TVDB = settings.Identifiers.TVDB
 		}
 
-		tvShowFile.KeepShow = settings.KeepShow
-		tvShowFile.KeepSeasons = settings.KeepSeasons
+		tvShowFile.Rules = settings.Rules
 	}
 	return nil
 }

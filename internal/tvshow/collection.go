@@ -35,13 +35,12 @@ func (collection *Collection) addShow(showName string) *Show {
 }
 
 // AddMediaFile adds a given MediaFile to a TVShowCollection
-func (collection *Collection) AddMediaFile(file *File, config config.Config, watchedStateCache WatchedStateContainer) (*File, error) {
+func (collection *Collection) AddMediaFile(file *File, config config.Config, watchedStateCache EpisodeHistoryContainer) (*File, error) {
 	show := collection.addShow(file.Identifiers.Name)
 	show.ids = file.Identifiers
-	show.settings.keep = file.KeepShow
-	show.settings.keepSeasons = file.KeepSeasons
+	show.rules = file.Rules
 
-	var showHistory *WatchedState
+	var showHistory *EpisodeHistory
 	showHistoryFound := false
 	if show.ids.Trakt != 0 {
 		showHistory, showHistoryFound = watchedStateCache.FindShowByTraktID(show.ids.Trakt)
@@ -59,7 +58,7 @@ func (collection *Collection) AddMediaFile(file *File, config config.Config, wat
 	episode := season.addEpisode(file.Episode)
 	episode.addFile(file)
 	if showHistoryFound {
-		episode.watchedState, _ = showHistory.getEpisodeWatchHistory(season.number, episode.number)
+		episode.episodeHistory, _ = showHistory.getEpisodeWatchHistory(season.number, episode.number)
 	}
 
 	return file, nil

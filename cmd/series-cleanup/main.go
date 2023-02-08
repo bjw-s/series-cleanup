@@ -22,7 +22,7 @@ func main() {
 		zap.Any("configuration", config.AppConfig),
 	)
 
-	var watchedState tvshow.WatchedStateContainer
+	var episodeHistory tvshow.EpisodeHistoryContainer
 
 	// Fetch watched states from Trakt if enabled
 	if config.AppConfig.Sources.Trakt.Enabled {
@@ -38,7 +38,7 @@ func main() {
 
 		logger.Info("Successfully authenticated with Trakt")
 
-		if err := watchedState.UpdateFromTrakt(
+		if err := episodeHistory.UpdateFromTrakt(
 			config.AppConfig.Sources.Trakt.User,
 			&trakt.TraktAPI,
 		); err != nil {
@@ -65,7 +65,7 @@ func main() {
 			)
 		}
 
-		err := collectTvShowFiles(&tvShowCollection, scanFolder, watchedState)
+		err := collectTvShowFiles(&tvShowCollection, scanFolder, episodeHistory)
 		if err != nil {
 			logger.Fatal("Could not collect TV show files",
 				zap.Error(err),
@@ -78,7 +78,7 @@ func main() {
 	logger.Info("Finished...")
 }
 
-func collectTvShowFiles(collection *tvshow.Collection, scanFolder string, watchedStateCache tvshow.WatchedStateContainer) error {
+func collectTvShowFiles(collection *tvshow.Collection, scanFolder string, watchedStateCache tvshow.EpisodeHistoryContainer) error {
 	err := filepath.WalkDir(scanFolder, func(path string, info os.DirEntry, nestedErr error) error {
 		if info.IsDir() {
 			return nil

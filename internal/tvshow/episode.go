@@ -12,10 +12,10 @@ import (
 )
 
 type episode struct {
-	number       int
-	files        []*File
-	watchedState *watchedStateEntry
-	parentSeason season
+	number         int
+	files          []*File
+	episodeHistory *episodeHistoryEntry
+	parentSeason   season
 }
 
 func (ep *episode) getFile(episodePath string) (*File, bool) {
@@ -32,15 +32,49 @@ func (ep *episode) addFile(episodeFile *File) {
 }
 
 func (ep *episode) isWatched() bool {
-	return ep.watchedState != nil
+	return ep.episodeHistory != nil
 }
 
 func (ep *episode) watchedBefore(t time.Time) bool {
-	if ep.watchedState != nil {
-		episodeLastWatched := ep.watchedState.lastWatched
+	if ep.episodeHistory != nil {
+		episodeLastWatched := ep.episodeHistory.lastWatched
 		return t.After(episodeLastWatched)
 	}
 	return false
+}
+
+func (ep *episode) delete() {
+	lop.ForEach((*ep).files, func(item *File, _ int) {
+		if config.AppConfig.DryRun {
+			logger.Info("Skipped",
+				zap.String("show", ep.parentSeason.parentShow.ids.Name),
+				zap.Int("season", ep.parentSeason.number),
+				zap.Int("episode", ep.number),
+				zap.String("reason", "Dry-run mode enabled"),
+			)
+		} else {
+			// item.DeleteWithSubtitleFiles()
+			logger.Info("Removed",
+				zap.String("show", ep.parentSeason.parentShow.ids.Name),
+				zap.Int("season", ep.parentSeason.number),
+				zap.Int("episode", ep.number),
+			)
+		}
+	})
+}
+
+func (ep *episode) deleteIfWatchedMoreThanHoursAgo(hours int) {
+	if !ep.isWatched() || !ep.watchedBefore(time.Now().UTC().Add(-time.Duration(int64(hours)*int64(time.Hour)))) {
+		logger.Info("Skipped",
+			zap.String("show", ep.parentSeason.parentShow.ids.Name),
+			zap.Int("season", ep.parentSeason.number),
+			zap.Int("episode", ep.number),
+			zap.String("reason", fmt.Sprintf("Episode was marked as watched < %v hours ago", hours)),
+		)
+		return
+	}
+
+	ep.delete()
 }
 
 func (ep *episode) process() {
@@ -51,32 +85,14 @@ func (ep *episode) process() {
 			zap.Int("episode", ep.number),
 			zap.String("reason", "Episode is not marked as watched"),
 		)
+		return
 	}
 
-	if !ep.watchedBefore(time.Now().Add(-time.Duration(int64(config.AppConfig.DeleteAfterHours) * int64(time.Hour)))) {
-		logger.Info("Skipped",
-			zap.String("show", ep.parentSeason.parentShow.ids.Name),
-			zap.Int("season", ep.parentSeason.number),
-			zap.Int("episode", ep.number),
-			zap.String("reason", fmt.Sprintf("Episode was marked as watched < %v hours ago", config.AppConfig.DeleteAfterHours)),
-		)
+	deleteAfterHours := config.AppConfig.Rules.DeleteWatchedAfterHours
+	if ep.parentSeason.parentShow.rules.DeleteWatchedAfterHours != nil {
+		deleteAfterHours = ep.parentSeason.parentShow.rules.DeleteWatchedAfterHours
 	}
-
-	lop.ForEach((*ep).files, func(item *File, _ int) {
-		if config.AppConfig.DryRun {
-			logger.Info("Skipped",
-				zap.String("show", ep.parentSeason.parentShow.ids.Name),
-				zap.Int("season", ep.parentSeason.number),
-				zap.Int("episode", ep.number),
-				zap.String("reason", "Dry-run mode enabled"),
-			)
-		} else {
-			item.DeleteWithSubtitleFiles()
-			logger.Info("Removed",
-				zap.String("show", ep.parentSeason.parentShow.ids.Name),
-				zap.Int("season", ep.parentSeason.number),
-				zap.Int("episode", ep.number),
-			)
-		}
-	})
+	if deleteAfterHours != nil {
+		ep.deleteIfWatchedMoreThanHoursAgo(*deleteAfterHours)
+	}
 }

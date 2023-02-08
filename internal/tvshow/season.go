@@ -30,11 +30,11 @@ func (seas *season) addEpisode(seasonEpisode int) *episode {
 }
 
 func (seas *season) keepSeason() bool {
-	if lo.Contains(seas.parentShow.settings.keepSeasons, -1) && (seas.parentShow.getLatestSeason() == seas.number) {
+	if lo.Contains(seas.parentShow.rules.KeepSeasons, -1) && (seas.parentShow.getLatestSeason() == seas.number) {
 		return true
 	}
 
-	if lo.Contains(seas.parentShow.settings.keepSeasons, seas.number) {
+	if lo.Contains(seas.parentShow.rules.KeepSeasons, seas.number) {
 		return true
 	}
 	return false

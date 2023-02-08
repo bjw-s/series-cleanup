@@ -1,6 +1,7 @@
 package tvshow
 
 import (
+	"github.com/bjw-s/series-cleanup/internal/config"
 	"github.com/bjw-s/series-cleanup/internal/logger"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
@@ -24,9 +25,9 @@ type showSettings struct {
 
 // Show represents a TV show and it's underlying data
 type Show struct {
-	ids      Identifiers
-	seasons  []*season
-	settings showSettings
+	ids     Identifiers
+	seasons []*season
+	rules   config.FolderRules
 }
 
 // getSeason returns the season with the specified number and a boolean indicating
@@ -60,7 +61,7 @@ func (shw *Show) addSeason(number int) *season {
 
 // Process will run any required processing for the TV show
 func (shw *Show) process() {
-	if shw.settings.keep {
+	if shw.rules.KeepShow {
 		logger.Info("Skipped",
 			zap.String("show", shw.ids.Name),
 			zap.String("reason", "Show is configured to be skipped"),

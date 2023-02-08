@@ -30,6 +30,19 @@ func (s sensitiveString) MarshalJSON() ([]byte, error) {
 	return json.Marshal("[REDACTED]")
 }
 
+type globalRules struct {
+	DeleteWatchedAfterHours *int
+	// TODO: Add this after Plex integration
+	// DeleteUnwatchedDaysAfterAdded *int
+}
+
+type FolderRules struct {
+	DeleteWatchedAfterHours       *int
+	DeleteUnwatchedDaysAfterAdded *int
+	KeepShow                      bool  `validate:"excluded_with_all=KeepSeasons"`
+	KeepSeasons                   []int `validate:"excluded_with_all=KeepShow"`
+}
+
 type folderSettingsIdentifiers struct {
 	Trakt int    `mapstructure:"trakt"`
 	Slug  string `mapstructure:"slug"`
@@ -42,8 +55,7 @@ type folderSettingsIdentifiers struct {
 type FolderSettings struct {
 	Folder      string
 	Identifiers folderSettingsIdentifiers
-	KeepShow    bool  `validate:"excluded_with_all=KeepSeasons"`
-	KeepSeasons []int `validate:"excluded_with_all=KeepShow"`
+	Rules       FolderRules `validate:"dive"`
 }
 
 type traktConfig struct {
@@ -64,9 +76,10 @@ type Config struct {
 	DeleteAfterHours int
 	DryRun           bool
 	FolderRegex      string
-	LogLevel         string
 	FolderSettings   []FolderSettings `validate:"dive"`
-	ScanFolders      []string         `validate:"dive"`
+	LogLevel         string
+	Rules            globalRules `validate:"dive"`
+	ScanFolders      []string    `validate:"dive"`
 	Sources          struct {
 		Trakt traktConfig
 		Plex  plexConfig
