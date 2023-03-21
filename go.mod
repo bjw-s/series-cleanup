@@ -6,7 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/knadh/koanf v1.5.0
 	github.com/oriser/regroup v0.0.0-20210730155327-fca8d7531263
-	github.com/samber/lo v1.37.0
+	github.com/samber/lo v1.38.1
 	github.com/spf13/pflag v1.0.5
 	go.uber.org/zap v1.24.0
 )
