@@ -48,8 +48,11 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	if err := conf.Validate(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	if validationErrors := conf.Validate(); validationErrors != nil {
+		fmt.Fprintln(os.Stderr, "Config validation failed:")
+		for _, ve := range validationErrors {
+			fmt.Fprintln(os.Stderr, ve)
+		}
 		os.Exit(1)
 	}
 }
