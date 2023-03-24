@@ -51,54 +51,48 @@ func (suite *TestTraktConfigTestSuite) TestDisabled() {
 
 func (suite *TestTraktConfigTestSuite) TestValidValues() {
 	workingDir, _ := os.Getwd()
-	var err error
-	var tc = traktConfig{}
-	tc.Enabled = true
-	tc.ClientID = "12345"
-	tc.ClientSecret = "12345"
-	tc.User = "12345"
-	tc.CacheDir = workingDir
-
-	err = validate.Struct(tc)
-	assert.NoError(suite.T(), err)
+	testExpectedValidationErrors(
+		suite.T(),
+		&traktConfig{
+			Enabled:      true,
+			ClientID:     "12345",
+			ClientSecret: "12345",
+			User:         "12345",
+			CacheDir:     workingDir,
+		},
+		nil,
+	)
 }
 
 func (suite *TestTraktConfigTestSuite) TestRequiredFields() {
-	var err error
-	var tc = traktConfig{}
-	tc.Enabled = true
-
-	requiredFields := []string{
-		"traktConfig.CacheDir", "traktConfig.ClientID", "traktConfig.ClientSecret", "traktConfig.User",
-	}
-
-	err = validate.Struct(tc)
-	if assert.Error(suite.T(), err) {
-		assert.IsType(suite.T(), validator.ValidationErrors{}, err)
-		validationErrors := err.(validator.ValidationErrors)
-		for i, field := range requiredFields {
-			assert.Equal(suite.T(), "required_if", validationErrors[i].Tag())
-			assert.Equal(suite.T(), field, validationErrors[i].Namespace())
-		}
-	}
+	testExpectedValidationErrors(
+		suite.T(),
+		&traktConfig{
+			Enabled: true,
+		},
+		[]*expectedValidationError{
+			{tag: "required_if", namespace: "traktConfig.CacheDir"},
+			{tag: "required_if", namespace: "traktConfig.ClientID"},
+			{tag: "required_if", namespace: "traktConfig.ClientSecret"},
+			{tag: "required_if", namespace: "traktConfig.User"},
+		},
+	)
 }
 
 func (suite *TestTraktConfigTestSuite) TestInvalidCacheFolder() {
-	var err error
-	var tc = traktConfig{}
-	tc.Enabled = true
-	tc.User = "test"
-	tc.ClientID = "12345"
-	tc.ClientSecret = "12345"
-	tc.CacheDir = "/this_does_not_exist"
-
-	err = validate.Struct(tc)
-	if assert.Error(suite.T(), err) {
-		assert.IsType(suite.T(), validator.ValidationErrors{}, err)
-		validationErrors := err.(validator.ValidationErrors)
-		assert.Equal(suite.T(), "valid_folder", validationErrors[0].Tag())
-		assert.Equal(suite.T(), "traktConfig.CacheDir", validationErrors[0].Namespace())
-	}
+	testExpectedValidationErrors(
+		suite.T(),
+		&traktConfig{
+			Enabled:      true,
+			ClientID:     "12345",
+			ClientSecret: "12345",
+			User:         "12345",
+			CacheDir:     "/this_does_not_exist",
+		},
+		[]*expectedValidationError{
+			{tag: "valid_folder", namespace: "traktConfig.CacheDir"},
+		},
+	)
 }
 
 func TestPlexConfig(t *testing.T) {
@@ -106,38 +100,36 @@ func TestPlexConfig(t *testing.T) {
 }
 
 func (suite *TestPlexConfigTestSuite) TestDisabled() {
-	var err error
-	var pc = plexConfig{}
-	pc.Enabled = false
-	assert.NoError(suite.T(), err)
+	testExpectedValidationErrors(
+		suite.T(),
+		&plexConfig{
+			Enabled: false,
+		},
+		nil,
+	)
 }
 
 func (suite *TestPlexConfigTestSuite) TestValidValues() {
-	var err error
-	var pc = plexConfig{}
-	pc.Enabled = true
-	pc.Token = "12345"
-	assert.NoError(suite.T(), err)
+	testExpectedValidationErrors(
+		suite.T(),
+		&plexConfig{
+			Enabled: false,
+			Token:   "12345",
+		},
+		nil,
+	)
 }
 
 func (suite *TestPlexConfigTestSuite) TestRequiredFields() {
-	var err error
-	var pc = plexConfig{}
-	pc.Enabled = true
-
-	requiredFields := []string{
-		"plexConfig.Token",
-	}
-
-	err = validate.Struct(pc)
-	if assert.Error(suite.T(), err) {
-		assert.IsType(suite.T(), validator.ValidationErrors{}, err)
-		validationErrors := err.(validator.ValidationErrors)
-		for i, field := range requiredFields {
-			assert.Equal(suite.T(), "required_if", validationErrors[i].Tag())
-			assert.Equal(suite.T(), field, validationErrors[i].Namespace())
-		}
-	}
+	testExpectedValidationErrors(
+		suite.T(),
+		&plexConfig{
+			Enabled: true,
+		},
+		[]*expectedValidationError{
+			{tag: "required_if", namespace: "plexConfig.Token"},
+		},
+	)
 }
 
 func TestFolderRules(t *testing.T) {
@@ -145,43 +137,60 @@ func TestFolderRules(t *testing.T) {
 }
 
 func (suite *TestFolderRulesTestSuite) TestValidValues() {
-	var err error
-	var fr = FolderRules{}
-	fr.DeleteWatchedAfterHours = 1
-	fr.KeepShow = false
-	fr.KeepSeasons = []int{1}
-
-	err = validate.Struct(fr)
-	assert.NoError(suite.T(), err)
+	testExpectedValidationErrors(
+		suite.T(),
+		&FolderRules{
+			DeleteWatchedAfterHours: 1,
+			KeepShow:                false,
+			KeepSeasons:             []int{1},
+		},
+		nil,
+	)
 }
 
 func (suite *TestFolderRulesTestSuite) TestBothKeepShowAndKeepSeason() {
-	var err error
-	var fr = FolderRules{}
-	fr.KeepShow = true
-	fr.KeepSeasons = []int{}
-
-	err = validate.Struct(fr)
-	if assert.Error(suite.T(), err) {
-		assert.IsType(suite.T(), validator.ValidationErrors{}, err)
-		validationErrors := err.(validator.ValidationErrors)
-		assert.Equal(suite.T(), "excluded_with_all", validationErrors[0].Tag())
-		assert.Equal(suite.T(), "FolderRules.KeepShow", validationErrors[0].Namespace())
-		assert.Equal(suite.T(), "excluded_with_all", validationErrors[1].Tag())
-		assert.Equal(suite.T(), "FolderRules.KeepSeasons", validationErrors[1].Namespace())
-	}
+	testExpectedValidationErrors(
+		suite.T(),
+		&FolderRules{
+			KeepShow:    true,
+			KeepSeasons: []int{},
+		},
+		[]*expectedValidationError{
+			{tag: "excluded_with_all", namespace: "FolderRules.KeepShow"},
+			{tag: "excluded_with_all", namespace: "FolderRules.KeepSeasons"},
+		},
+	)
 }
 
 func (suite *TestFolderRulesTestSuite) TestKeepSeasonEmpty() {
-	var err error
-	var fr = FolderRules{}
-	fr.KeepSeasons = []int{}
+	testExpectedValidationErrors(
+		suite.T(),
+		&FolderRules{
+			KeepSeasons: []int{},
+		},
+		[]*expectedValidationError{
+			{tag: "gt", namespace: "FolderRules.KeepSeasons"},
+		},
+	)
+}
 
-	err = validate.Struct(fr)
-	if assert.Error(suite.T(), err) {
-		assert.IsType(suite.T(), validator.ValidationErrors{}, err)
-		validationErrors := err.(validator.ValidationErrors)
-		assert.Equal(suite.T(), "gt", validationErrors[0].Tag())
-		assert.Equal(suite.T(), "FolderRules.KeepSeasons", validationErrors[0].Namespace())
+func testExpectedValidationErrors(t *testing.T, obj interface{}, ev []*expectedValidationError) {
+	var err = validate.Struct(obj)
+	if ev == nil {
+		assert.NoError(t, err)
+	} else {
+		if assert.Error(t, err) {
+			assert.IsType(t, validator.ValidationErrors{}, err)
+			validationErrors := err.(validator.ValidationErrors)
+			for i, validationError := range ev {
+				assert.Equal(t, validationError.tag, validationErrors[i].Tag())
+				assert.Equal(t, validationError.namespace, validationErrors[i].Namespace())
+			}
+		}
 	}
+}
+
+type expectedValidationError struct {
+	tag       string
+	namespace string
 }
