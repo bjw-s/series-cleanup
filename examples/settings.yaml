@@ -1,0 +1,35 @@
+---
+dry_run: true
+log_level: debug
+
+trakt:
+  enabled: true
+  client_id: "<Trakt.tv client ID>"
+  client_secret: "<Trakt.tv client secret>"
+  user: "<Trakt.tv username>"
+
+scan_folders:
+  - "/Media/Series"
+
+rules:
+  delete_watched_after_hours: 24
+
+folder_settings:
+  - folder: Game of Thrones
+    keep_seasons:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+  - folder: Greys Anatomy
+    keep_show: true
+    identifiers:
+      slug: grey-s-anatomy
+  - folder: Battlestar Galactica
+    identifiers:
+      tvdbid: 73545
+  - folder: The Daily Show
+    keep_seasons:
+      - -1

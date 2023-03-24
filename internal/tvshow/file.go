@@ -91,8 +91,8 @@ func (tvShowFile *File) determineEpisode() error {
 	return nil
 }
 
-func (tvShowFile *File) processFolderSettings() error {
-	settings, found := lo.Find(config.AppConfig.FolderSettings, func(item config.FolderSettings) bool {
+func (tvShowFile *File) processFolderSettings(conf *config.Config) error {
+	settings, found := lo.Find(conf.FolderSettings, func(item config.FolderSettings) bool {
 		parentFolderName := filepath.Base(filepath.Dir(tvShowFile.Dir))
 		return strings.EqualFold(parentFolderName, item.Folder)
 	})
@@ -181,7 +181,7 @@ func IsMediaFile(path string) bool {
 }
 
 // NewTVShowFile creates a new MediaFile instance
-func NewTVShowFile(path string, folderRegex string) (*File, error) {
+func NewTVShowFile(path string, conf *config.Config) (*File, error) {
 	tvshowfile := new(File)
 	tvshowfile.path = path
 	err := tvshowfile.getBasicFileData()
@@ -192,7 +192,7 @@ func NewTVShowFile(path string, folderRegex string) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = tvshowfile.determineShow(folderRegex)
+	err = tvshowfile.determineShow(conf.FolderRegex)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func NewTVShowFile(path string, folderRegex string) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = tvshowfile.processFolderSettings()
+	err = tvshowfile.processFolderSettings(conf)
 	if err != nil {
 		return nil, err
 	}

@@ -35,7 +35,7 @@ func (collection *Collection) addShow(showName string) *Show {
 }
 
 // AddMediaFile adds a given MediaFile to a TVShowCollection
-func (collection *Collection) AddMediaFile(file *File, config config.Config, watchedStateCache EpisodeHistoryContainer) (*File, error) {
+func (collection *Collection) AddMediaFile(file *File, config *config.Config, watchedStateCache EpisodeHistoryContainer) (*File, error) {
 	show := collection.addShow(file.Identifiers.Name)
 	show.ids = file.Identifiers
 	show.rules = file.Rules
@@ -65,8 +65,8 @@ func (collection *Collection) AddMediaFile(file *File, config config.Config, wat
 }
 
 // Process will run any required processing for each collected TV show
-func (collection *Collection) Process() {
+func (collection *Collection) Process(conf *config.Config) {
 	lop.ForEach((*collection), func(item *Show, _ int) {
-		item.process()
+		item.process(conf)
 	})
 }

@@ -2,7 +2,6 @@ package tvshow
 
 import (
 	"github.com/bjw-s/series-cleanup/internal/config"
-	"github.com/bjw-s/series-cleanup/internal/logger"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
@@ -60,9 +59,10 @@ func (shw *Show) addSeason(number int) *season {
 }
 
 // Process will run any required processing for the TV show
-func (shw *Show) process() {
+func (shw *Show) process(conf *config.Config) {
+	logger := zap.S()
 	if shw.rules.KeepShow {
-		logger.Info("Skipped",
+		logger.Infow("Skipped",
 			zap.String("show", shw.ids.Name),
 			zap.String("reason", "Show is configured to be skipped"),
 		)
@@ -71,6 +71,6 @@ func (shw *Show) process() {
 
 	lop.ForEach((*shw).seasons, func(seas *season, _ int) {
 		seas.parentShow = *shw
-		seas.process()
+		seas.process(conf)
 	})
 }

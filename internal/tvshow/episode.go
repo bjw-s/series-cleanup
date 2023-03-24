@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/bjw-s/series-cleanup/internal/config"
-	"github.com/bjw-s/series-cleanup/internal/logger"
 	"github.com/samber/lo"
+
 	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
 )
@@ -43,18 +43,20 @@ func (ep *episode) watchedBefore(t time.Time) bool {
 	return false
 }
 
-func (ep *episode) delete() {
+func (ep *episode) delete(dryrun bool) {
+	logger := zap.S()
 	lop.ForEach((*ep).files, func(item *File, _ int) {
-		if config.AppConfig.DryRun {
-			logger.Info("Skipped",
+		if dryrun {
+			logger.Infow("Skipped",
 				zap.String("show", ep.parentSeason.parentShow.ids.Name),
 				zap.Int("season", ep.parentSeason.number),
 				zap.Int("episode", ep.number),
 				zap.String("reason", "Dry-run mode enabled"),
 			)
 		} else {
-			// item.DeleteWithSubtitleFiles()
-			logger.Info("Removed",
+			// TODO: Re-enable after testing
+			item.DeleteWithSubtitleFiles()
+			logger.Infow("Removed",
 				zap.String("show", ep.parentSeason.parentShow.ids.Name),
 				zap.Int("season", ep.parentSeason.number),
 				zap.Int("episode", ep.number),
@@ -63,9 +65,10 @@ func (ep *episode) delete() {
 	})
 }
 
-func (ep *episode) deleteIfWatchedMoreThanHoursAgo(hours int) {
+func (ep *episode) deleteIfWatchedMoreThanHoursAgo(hours int, conf *config.Config) {
+	logger := zap.S()
 	if !ep.isWatched() || !ep.watchedBefore(time.Now().UTC().Add(-time.Duration(int64(hours)*int64(time.Hour)))) {
-		logger.Info("Skipped",
+		logger.Infow("Skipped",
 			zap.String("show", ep.parentSeason.parentShow.ids.Name),
 			zap.Int("season", ep.parentSeason.number),
 			zap.Int("episode", ep.number),
@@ -74,12 +77,13 @@ func (ep *episode) deleteIfWatchedMoreThanHoursAgo(hours int) {
 		return
 	}
 
-	ep.delete()
+	ep.delete(conf.DryRun)
 }
 
-func (ep *episode) process() {
+func (ep *episode) process(conf *config.Config) {
+	logger := zap.S()
 	if !ep.isWatched() {
-		logger.Info("Skipped",
+		logger.Infow("Skipped",
 			zap.String("show", ep.parentSeason.parentShow.ids.Name),
 			zap.Int("season", ep.parentSeason.number),
 			zap.Int("episode", ep.number),
@@ -88,11 +92,11 @@ func (ep *episode) process() {
 		return
 	}
 
-	deleteAfterHours := config.AppConfig.Rules.DeleteWatchedAfterHours
-	if ep.parentSeason.parentShow.rules.DeleteWatchedAfterHours != nil {
+	deleteAfterHours := conf.Rules.DeleteWatchedAfterHours
+	if ep.parentSeason.parentShow.rules.DeleteWatchedAfterHours != 0 {
 		deleteAfterHours = ep.parentSeason.parentShow.rules.DeleteWatchedAfterHours
 	}
-	if deleteAfterHours != nil {
-		ep.deleteIfWatchedMoreThanHoursAgo(*deleteAfterHours)
+	if deleteAfterHours != 0 {
+		ep.deleteIfWatchedMoreThanHoursAgo(deleteAfterHours, conf)
 	}
 }

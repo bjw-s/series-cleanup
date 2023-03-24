@@ -1,7 +1,7 @@
 package tvshow
 
 import (
-	"github.com/bjw-s/series-cleanup/internal/logger"
+	"github.com/bjw-s/series-cleanup/internal/config"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
@@ -40,9 +40,10 @@ func (seas *season) keepSeason() bool {
 	return false
 }
 
-func (seas *season) process() {
+func (seas *season) process(conf *config.Config) {
+	logger := zap.S()
 	if seas.keepSeason() {
-		logger.Info("Skipped",
+		logger.Infow("Skipped",
 			zap.String("show", seas.parentShow.ids.Name),
 			zap.Int("season", seas.number),
 			zap.String("reason", "Season is configured to be skipped"),
@@ -51,6 +52,6 @@ func (seas *season) process() {
 
 	lop.ForEach((*seas).episodes, func(ep *episode, _ int) {
 		ep.parentSeason = *seas
-		ep.process()
+		ep.process(conf)
 	})
 }
