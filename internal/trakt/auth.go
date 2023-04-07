@@ -222,7 +222,11 @@ func getDeviceToken(api *API) (*deviceCode, error) {
 }
 
 // Authenticate against the Trakt API
-func (api *API) Authenticate() error {
+func (api *API) Authenticate(clientID string, clientSecret string, dataPath string) error {
+	api.ClientID = clientID
+	api.ClientSecret = clientSecret
+	api.DataPath = dataPath
+
 	err := api.validate()
 	if err != nil {
 		return err

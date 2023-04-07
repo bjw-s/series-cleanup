@@ -14,6 +14,9 @@ const apiVersion = "2"
 
 const apiDefaultDatapath = "/data"
 
+// TraktAPI exposes the trakt API globally
+var TraktAPI API
+
 // API represents the Trakt API
 type API struct {
 	DataPath        string

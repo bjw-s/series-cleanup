@@ -19,8 +19,8 @@ USER nonroot:nonroot
 COPY --from=build --chown=nonroot:nonroot /build/series-cleanup /app/series-cleanup
 COPY --from=build --chown=nonroot:nonroot /sbin/tini-static /sbin/tini
 ENTRYPOINT [ "/sbin/tini", "--", "/app/series-cleanup" ]
+CMD [ "run" ]
 VOLUME "/config"
 LABEL \
   org.opencontainers.image.base.name="gcr.io/distroless/static:nonroot" \
-  org.opencontainers.image.title="series-cleanup" \
-  org.opencontainers.image.source="https://github.com/bjw-s/series-cleanup"
+  org.opencontainers.image.title="series-cleanup"
