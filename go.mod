@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/knadh/koanf v1.5.0
-	github.com/oriser/regroup v0.0.0-20230527212431-1b00c9bdbc5b
+	github.com/oriser/regroup v0.1
 	github.com/samber/lo v1.38.1
 	github.com/spf13/pflag v1.0.5
 	go.uber.org/zap v1.24.0
