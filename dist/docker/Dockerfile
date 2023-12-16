@@ -14,7 +14,7 @@ WORKDIR /build
 COPY . .
 RUN go build -ldflags="-s -w" -o series-cleanup /build/cmd/series-cleanup/.
 
-FROM gcr.io/distroless/static:nonroot@sha256:91ca4720011393f4d4cab3a01fa5814ee2714b7d40e6c74f2505f74168398ca9
+FROM gcr.io/distroless/static:nonroot@sha256:112a87f19e83c83711cc81ce8ed0b4d79acd65789682a6a272df57c4a0858534
 USER nonroot:nonroot
 COPY --from=build --chown=nonroot:nonroot /build/series-cleanup /app/series-cleanup
 COPY --from=build --chown=nonroot:nonroot /sbin/tini-static /sbin/tini
